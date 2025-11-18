@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Schedule</title>
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1, h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 5px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+        .message-output {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+        }
+        textarea#messagePreview {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
+        .copy-section {
+            margin-top: 10px;
+            text-align: right;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            margin-left: 5px;
+        }
+        button:hover {
+            background-color: #1e7e34;
+        }
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+        .control-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .control-item {
+            display: flex;
+            flex-direction: column;
+            min-width: 250px;
+            flex-grow: 1;
+        }
+        .control-item label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #0056b3;
+        }
+        .control-item input[type="date"], .control-item select, .control-item input[type="text"], .control-item textarea {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #optionalClasses {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .class-list label {
+            display: block;
+            font-weight: normal;
+            margin-bottom: 5px;
+        }
+        .class-list input {
+            margin-right: 5px;
+        }
+        /* Table styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 13px;
+        }
+        th {
+            background-color: #e9ecef;
+            color: #333;
+        }
+        #referenceTable td:first-child {
+            font-weight: bold;
+            background-color: #f0f0f0;
+            vertical-align: top;
+        }
+        /* New Editor Styles */
+        #editorModal {
+            display: none; 
+            position: fixed; 
+            z-index: 10; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7); 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%; 
+            max-width: 1200px;
+            border-radius: 8px;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        /* Editable table styles */
+        #editableRoutineTable td[contenteditable="true"] {
+            background-color: #fffacd; 
+            cursor: text;
+        }
+        footer {
+            margin-top: 50px;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ccc;
+        }
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .editor-controls button {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="editor-header">
+            <h1>📅 Class Schedule Generator</h1>
+            <button onclick="openEditor()" style="background-color: #007bff;"><span style="font-size: 1.5em;">✏️</span> Edit Routine</button>
+        </div>
+        
+        <div class="control-section">
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="scheduleDate">আগামীকালের তারিখ ক্যালেন্ডার থেকে নির্বাচন করুন:</label>
+                    <input type="date" id="scheduleDate" onchange="updateDayAndGenerate()">
+                </div>
+                
+                <div class="control-item">
+                    <label for="currentDay">নির্বাচিত দিন:</label>
+                    <input type="text" id="currentDay" value="Select a Date" readonly style="background-color: #eee;">
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="scheduleType">ক্লাস শিডিউলের ধরন নির্বাচন করুন:</label>
+                    <select id="scheduleType" onchange="toggleClassSelection()">
+                        <option value="full">All Classes Will Be Held</option>
+                        <option value="partial">Partial Schedule / Some Classes Are Canceled</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label for="specialNote">বিশেষ মন্তব্য/ঘোষণা:</label>
+                    <textarea id="specialNote" oninput="generateMessage()" placeholder="Optional. e.g.: Today class will be held till 12:00 PM. Or, A general announcement..."></textarea>
+                </div>
+            </div>
+
+            <div id="optionalClasses" style="display: none;">
+                <label>যে ক্লাসগুলো **হবে না** সেগুলো সিলেক্ট করুন:</label>
+                <div id="classListContainer" class="class-list">
+                    </div>
+            </div>
+        </div>
+
+        <div class="message-output">
+            <h2>Message Preview and Copy</h2>
+            <textarea id="messagePreview" readonly></textarea>
+            <div class="copy-section">
+                <button onclick="copyMessage()">Copy Message</button>
+            </div>
+        </div>
+        
+        <h2>Final Class Schedule (Reference)</h2>
+        <p>The entire weekly routine for quick reference. Click 'Edit Routine' above to modify this data.</p>
+        <table id="referenceTable">
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Class Topic</th>
+                    <th>Short Name</th>
+                    <th>Full Name</th>
+                    <th>Room</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <div id="editorModal" class="modal">
+        <div class="modal-content">
+            <span onclick="closeEditor()" class="close-button">&times;</span>
+            <h2>✏️ Edit Class Routine Table</h2>
+            <p style="color: red;">সরাসরি টেবিলের **হলুদ হাইলাইট করা** ঘরগুলোতে এডিট করুন। একটি ক্লাস বাদ দিতে সেটির `Class Topic` ঘরে "No class" লিখুন।</p>
+            
+            <div style="overflow-x: auto;">
+                <table id="editableRoutineTable">
+                    </table>
+            </div>
+
+            <div class="editor-controls" style="margin-top: 20px;">
+                <button onclick="saveRoutine()" style="background-color: #ffc107; color: #333;">Save and Apply Changes</button>
+                <button onclick="resetRoutine()" style="background-color: #dc3545;">Reset to Default Routine</button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>Web app created by **@MdJaberAhammedJisan**</p>
+        <p>Web app Developed by **je.pi**</p>
+    </footer>
+
+    <script>
+        const LOCAL_STORAGE_KEY = 'classScheduleData';
+
+        // Default Data Structure 
+        const defaultClassScheduleData = {
+            "Sunday": [
+                { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
+                { time: "09:45 - 10:30", topic: "Math (Non Major)", shortName: "SS", fullName: "Sarwar Sadek", room: "804 (Math Dept.)" },
+                { time: "10:30 - 11:15", topic: "Organic: Nomenclature, Conformation and Stability", shortName: "MBA", fullName: "Md. Badiul Alam Khan Chowdhury", room: "401" },
+                { time: "11:15 - 12:00", topic: "No class", shortName: "", fullName: "", room: "" },
+                { time: "12:00 - 12:45", topic: "Physical: States of Mater and Gaseous State", shortName: "DQ", fullName: "Dr. Md. Abdul Quddus", room: "401" },
+                { time: "12:45 - 01:30", topic: "Inorganic: Reaction Rate", shortName: "RA", fullName: "Raju Ahemmed", room: "401" }
+            ],
+            "Monday": [
+                { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
+                { time: "09:45 - 10:30", topic: "Physical: Energetics in Chemistry", shortName: "NS", fullName: "Nilufar Sultana", room: "401" },
+                { time: "10:30 - 11:15", topic: "Organic: Unsaturated Hydrocarbons", shortName: "FR", fullName: "Professor Fawzia Rahman", room: "401" },
+                { time: "11:15 - 12:00", topic: "No class", shortName: "", fullName: "", room: "" },
+                { time: "12:00 - 12:45", topic: "Inorganic: Acids and Bases", shortName: "YA", fullName: "Yeasmin Akhter", room: "401" },
+                { time: "12:45 - 01:30", topic: "Organic: Aldehyde and Ketone", shortName: "AK", fullName: "Md. Abdul Kadar", room: "401" }
+            ],
+            "Tuesday": [
+                { time: "09:00 - 09:45", topic: "Physics (Non Major)", shortName: "RK", fullName: "SM Riazul Karim", room: "602 (Physicd Dept.)" }, 
+                { time: "09:45 - 10:30", topic: "Math (Non Major)", shortName: "MA", fullName: "Md. Masud Alam", room: "804 (Math Dept.)" },
+                { time: "10:30 - 11:15", topic: "No class", shortName: "", fullName: "", room: "" },
+                { time: "11:15 - 12:00", topic: "Inorganic: Atomic Structure of the Elements", shortName: "SI", fullName: "Syful Islam", room: "401" },
+                { time: "12:00 - 12:45", topic: "Physical: Chemical Equilibrium", shortName: "MYM", fullName: "Mohammed Younous Mia", room: "401" },
+                { time: "12:45 - 01:30", topic: "No class", shortName: "", fullName: "", room: "" }
+            ],
+            "Wednesday": [
+                { time: "09:00 - 09:45", topic: "Physics (Non Major)", shortName: "MAB", fullName: "Md. Abdul Baten", room: "804 (Math Dept.)" },
+                { time: "09:45 - 10:30", topic: "HEIB (Non Major)", shortName: "", fullName: "", room: "Islamic Studies Dept." },
+                { time: "10:30 - 11:15", topic: "No class", shortName: "", fullName: "", room: "" },
+                { time: "11:15 - 12:00", topic: "Organic: Alkane and Cycloalkane", shortName: "SH", fullName: "Shirin Hoque", room: "401" },
+                { time: "12:00 - 12:45", topic: "Practical", shortName: "MYM + SI + YA", fullName: "MYM, SI, YA (Combined)", room: "Chemistry Laboratory" }, 
+                { time: "12:45 - 01:30", topic: "Practical", shortName: "MYM + SI + YA", fullName: "MYM, SI, YA (Combined)", room: "Chemistry Laboratory" }
+            ],
+            "Thursday": [
+                { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
+                { time: "09:45 - 10:30", topic: "HEIB (Non Major)", shortName: "", fullName: "", room: "Islamic Studies Dept." },
+                { time: "10:30 - 11:15", topic: "Inorganic: Periodic Table and Periodic Properties", shortName: "TKD", fullName: "Tapash Kumar Datta", room: "401" },
+                { time: "11:15 - 12:00", topic: "Physical: Solution and Colligative Properties", shortName: "SG", fullName: "Suman Ghosh", room: "401" },
+                { time: "12:00 - 12:45", topic: "Organic: Alcohol, Phenol, Ether", shortName: "FA", fullName: "Mohammad Faruk Ahmed", room: "401" },
+                { time: "12:45 - 01:30", topic: "Physical: Chemical Bond", shortName: "MRB", fullName: "Mihir Rongon Bhowmik", room: "401" }
+            ],
+            "Friday": [
+                { time: "09:00 - 01:30", topic: "No Class (Weekly Holiday)", shortName: "", fullName: "", room: "" }
+            ],
+            "Saturday": [
+                { time: "09:00 - 01:30", topic: "No Class (Weekly Holiday)", shortName: "", fullName: "", room: "" }
+            ]
+        };
+
+        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        let currentClassScheduleData = {}; 
+
+        // --- Data Loading and Saving ---
+        function loadRoutineFromLocalStorage() {
+            const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (savedData) {
+                try {
+                    currentClassScheduleData = JSON.parse(savedData);
+                } catch (e) {
+                    currentClassScheduleData = defaultClassScheduleData;
+                }
+            } else {
+                currentClassScheduleData = defaultClassScheduleData;
+            }
+        }
+
+        function saveRoutineToLocalStorage(data) {
+            try {
+                if (!data || !data.Sunday || !Array.isArray(data.Sunday)) {
+                     alert("Error: The data structure is invalid. Cannot save.");
+                     return;
+                }
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+                alert("Routine updated and saved successfully! The app will now reload.");
+                window.location.reload(); 
+            } catch (e) {
+                alert("Error saving routine. Check console for details.");
+                console.error("Error saving routine:", e);
+            }
+        }
+        
+        // --- Editor Functions (Table-based) ---
+        function openEditor() {
+            const table = document.getElementById('editableRoutineTable');
+            table.innerHTML = ''; // Clear previous content
+
+            // 1. Create Table Header (Added 'Action')
+            const header = table.createTHead();
+            const headerRow = header.insertRow();
+            ['Day', 'Time', 'Class Topic', 'Short Name', 'Full Name', 'Room', 'Action'].forEach(text => {
+                const th = document.createElement('th');
+                th.textContent = text;
+                headerRow.appendChild(th);
+            });
+
+            // 2. Create Table Body (Editable Content)
+            const body = table.createTBody();
+            const daysToEdit = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            
+            daysToEdit.forEach(day => {
+                const dailySchedule = currentClassScheduleData[day] || [];
+                let rowCount = dailySchedule.length;
+                
+                // If a day is empty, add one default editable row
+                if (rowCount === 0) {
+                     dailySchedule.push({ time: "00:00 - 00:00", topic: "New Slot", shortName: "", fullName: "", room: "" });
+                     rowCount = 1;
+                }
+                
+                dailySchedule.forEach((classInfo, index) => {
+                    const row = body.insertRow();
+                    row.setAttribute('data-day', day);
+                    
+                    if (index === 0) {
+                        const dayCell = row.insertCell();
+                        dayCell.textContent = day;
+                        dayCell.rowSpan = rowCount; 
+                        dayCell.className = 'day-header-cell'; // Added class for easy retrieval
+                        dayCell.style.fontWeight = 'bold';
+                        dayCell.style.backgroundColor = '#e9ecef';
+                    }
+                    
+                    // Time - Editable
+                    const timeCell = row.insertCell();
+                    timeCell.textContent = classInfo.time || '00:00 - 00:00';
+                    timeCell.setAttribute('data-key', 'time');
+                    timeCell.setAttribute('contenteditable', 'true'); 
+                    
+                    // Editable Cells
+                    ['topic', 'shortName', 'fullName', 'room'].forEach(key => {
+                        const cell = row.insertCell();
+                        cell.textContent = classInfo[key] || '';
+                        cell.setAttribute('contenteditable', 'true');
+                        cell.setAttribute('data-key', key);
+                    });
+
+                    // Action Cell (Remove Slot)
+                    const actionCell = row.insertCell();
+                    const removeButton = document.createElement('button');
+                    removeButton.textContent = '🗑️ Remove Slot';
+                    removeButton.style.backgroundColor = '#dc3545';
+                    removeButton.style.padding = '5px 10px';
+                    removeButton.style.fontSize = '12px';
+                    removeButton.style.marginLeft = '0';
+                    removeButton.onclick = (e) => removeClassSlotInEditor(e.target.closest('tr'));
+                    actionCell.appendChild(removeButton);
+                });
+
+                // Add an 'Add Class' button at the end of each day
+                const addRow = body.insertRow();
+                const addCell = addRow.insertCell();
+                addCell.colSpan = 7;
+                addCell.style.textAlign = 'center';
+                addCell.style.padding = '0';
+                const addButton = document.createElement('button');
+                addButton.textContent = `+ Add Class Slot to ${day}`;
+                addButton.style.backgroundColor = '#28a745';
+                addButton.style.width = '100%';
+                addButton.style.borderRadius = '0';
+                addButton.style.padding = '10px';
+                addButton.style.marginTop = '10px';
+                addButton.style.marginBottom = '10px';
+                addButton.onclick = () => addClassSlotInEditor(day, body);
+                addCell.appendChild(addButton);
+            });
+
+            document.getElementById('editorModal').style.display = 'block';
+        }
+
+        // Function to add a slot in the live editor table
+        function addClassSlotInEditor(day, tbody) {
+            const table = document.getElementById('editableRoutineTable');
+            
+            // Find the last row of the current day (which is the Add Slot button row)
+            let lastClassRow = null;
+            let addSlotButtonRow = null;
+            Array.from(table.querySelectorAll('tbody tr')).forEach(row => {
+                 if (row.getAttribute('data-day') === day) {
+                    // Check if it's the class data row (i.e., not the button row)
+                    if (!row.querySelector('button[textContent*="Add Class Slot"]')) {
+                        lastClassRow = row;
+                    } else {
+                        addSlotButtonRow = row;
+                    }
+                }
+            });
+            
+            let insertionIndex = -1;
+            if (addSlotButtonRow) {
+                // Insert before the Add Slot button row
+                insertionIndex = addSlotButtonRow.rowIndex - 1;
+            } else if (lastClassRow) {
+                // Should not happen if Add Slot button is present, but fallback to after last class row
+                insertionIndex = lastClassRow.rowIndex;
+            }
+
+            // Find the day header cell to update rowSpan
+            const dayHeaderCell = tbody.querySelector(`tr[data-day="${day}"] .day-header-cell`);
+            if (dayHeaderCell) {
+                dayHeaderCell.rowSpan = (dayHeaderCell.rowSpan || 1) + 1;
+            }
+            
+            // Create the new class row
+            const newRow = tbody.insertRow(insertionIndex); 
+            newRow.setAttribute('data-day', day);
+
+            // Day cell will be absent for subsequent rows (handled by rowspan)
+
+            // Time - Editable
+            const timeCell = newRow.insertCell();
+            timeCell.textContent = "00:00 - 00:00"; 
+            timeCell.setAttribute('data-key', 'time');
+            timeCell.setAttribute('contenteditable', 'true');
+            
+            // Editable Cells
+            ['topic', 'shortName', 'fullName', 'room'].forEach(key => {
+                const cell = newRow.insertCell();
+                cell.textContent = key === 'topic' ? 'New Class' : '';
+                cell.setAttribute('contenteditable', 'true');
+                cell.setAttribute('data-key', key);
+            });
+
+            // Action Cell (Remove Slot)
+            const actionCell = newRow.insertCell();
+            const removeButton = document.createElement('button');
+            removeButton.textContent = '🗑️ Remove Slot';
+            removeButton.style.backgroundColor = '#dc3545';
+            removeButton.style.padding = '5px 10px';
+            removeButton.style.fontSize = '12px';
+            removeButton.style.marginLeft = '0';
+            removeButton.onclick = (e) => removeClassSlotInEditor(e.target.closest('tr'));
+            actionCell.appendChild(removeButton);
+
+            alert(`New slot added to ${day}. Please edit the details and click 'Save and Apply Changes'.`);
+        }
+        
+        // Function to remove a slot from the live editor table
+        function removeClassSlotInEditor(rowElement) {
+            if (!confirm("Are you sure you want to remove this class slot?")) return;
+
+            const day = rowElement.getAttribute('data-day');
+            
+            // 1. Find the day header cell to update rowSpan
+            const dayHeaderCell = rowElement.closest('tbody').querySelector(`tr[data-day="${day}"] .day-header-cell`);
+
+            if (dayHeaderCell) {
+                const currentRowsForDay = Array.from(rowElement.closest('tbody').querySelectorAll(`tr[data-day="${day}"]`)).filter(r => !r.querySelector('button[textContent*="Add Class Slot"]'));
+                const isFirstRow = rowElement.contains(dayHeaderCell);
+                
+                const newRowSpan = currentRowsForDay.length - 1;
+                
+                if (newRowSpan > 0) {
+                    dayHeaderCell.rowSpan = newRowSpan;
+                    
+                    // If the row being deleted contains the day header cell, move the day header cell to the next class row
+                    if (isFirstRow) {
+                        const allRows = Array.from(rowElement.closest('tbody').querySelectorAll(`tr[data-day="${day}"]`));
+                        const nextClassRow = allRows.find(r => r !== rowElement && !r.querySelector('button[textContent*="Add Class Slot"]'));
+                        
+                        if (nextClassRow) {
+                            const newDayCell = nextClassRow.insertCell(0); // Insert as the first cell
+                            newDayCell.textContent = day;
+                            newDayCell.rowSpan = newRowSpan;
+                            newDayCell.className = 'day-header-cell'; 
+                            newDayCell.style.fontWeight = 'bold';
+                            newDayCell.style.backgroundColor = '#e9ecef';
+                        }
+                    }
+                }
+            }
+            
+            // 2. Remove the row
+            rowElement.remove();
+            
+            alert(`Slot removed. Click 'Save and Apply Changes' to make the deletion permanent.`);
+        }
+        
+        function saveRoutine() {
+            const table = document.getElementById('editableRoutineTable');
+            // Select only rows that represent class data, ignoring the 'Add Slot' buttons
+            const rows = table.querySelectorAll('tbody tr[data-day]:not(:has(button[textContent*="Add Class Slot"]))');
+            const newRoutine = {}; 
+
+            rows.forEach(row => {
+                const day = row.getAttribute('data-day');
+                
+                if (!newRoutine[day]) {
+                    newRoutine[day] = [];
+                }
+
+                const classInfo = {};
+                // Select only cells with data-key (Time, Topic, Short Name, Full Name, Room)
+                row.querySelectorAll('td[data-key]').forEach(cell => {
+                    const key = cell.getAttribute('data-key');
+                    classInfo[key] = cell.textContent.trim();
+                });
+                
+                // Only add valid class slots (assuming Time or Topic exists)
+                if (classInfo.time || classInfo.topic) {
+                     newRoutine[day].push(classInfo);
+                }
+            });
+            
+            saveRoutineToLocalStorage(newRoutine);
+        }
+        
+        function resetRoutine() {
+            if (confirm("আপনি কি নিশ্চিত যে আপনি রুটিনটিকে ডিফল্ট অবস্থায় ফিরিয়ে নিতে চান? এই পরিবর্তনটি অপরিবর্তনীয়।")) {
+                saveRoutineToLocalStorage(defaultClassScheduleData);
+            }
+        }
+
+        // --- Core Logic (Using currentClassScheduleData) ---
+        function updateDayAndGenerate() {
+            const dateInput = document.getElementById('scheduleDate').value;
+            const dayElement = document.getElementById('currentDay');
+
+            if (dateInput) {
+                const dateObj = new Date(dateInput + 'T00:00:00'); 
+                const dayIndex = dateObj.getDay(); 
+                const dayName = dayNames[dayIndex];
+                
+                dayElement.value = dayName;
+                loadClassOptions(dayName); 
+                generateMessage();
+            } else {
+                dayElement.value = "Select a Date";
+                document.getElementById('classListContainer').innerHTML = '';
+                generateMessage();
+            }
+        }
+
+        function loadClassOptions(dayName) {
+            const container = document.getElementById('classListContainer');
+            container.innerHTML = '';
+            document.getElementById('optionalClasses').style.display = document.getElementById('scheduleType').value === 'partial' ? 'block' : 'none';
+
+            const dailySchedule = currentClassScheduleData[dayName] || []; 
+
+            if (dayName === "Friday" || dayName === "Saturday") return;
+
+            dailySchedule.forEach((classInfo, index) => {
+                if (classInfo.topic && classInfo.topic.toLowerCase() !== 'no class') {
+                    const label = document.createElement('label');
+                    const checkbox = document.createElement('input');
+                    
+                    checkbox.type = 'checkbox';
+                    checkbox.value = index;
+                    checkbox.checked = false; 
+                    checkbox.name = 'classCanceled';
+                    checkbox.onchange = generateMessage;
+
+                    let displayInfo = classInfo.time;
+                    const teacher = classInfo.shortName || classInfo.fullName;
+                    if (classInfo.topic) {
+                         displayInfo += ` - ${classInfo.topic}`;
+                    }
+                    if (teacher) {
+                        displayInfo += ` (${classInfo.shortName})`;
+                    }
+
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(displayInfo));
+                    container.appendChild(label);
+                }
+            });
+        }
+
+        function toggleClassSelection() {
+            const scheduleType = document.getElementById('scheduleType').value;
+            const optionalClassesDiv = document.getElementById('optionalClasses');
+            
+            if (scheduleType === 'partial') {
+                optionalClassesDiv.style.display = 'block';
+                loadClassOptions(document.getElementById('currentDay').value); 
+            } else {
+                optionalClassesDiv.style.display = 'none';
+            }
+            generateMessage();
+        }
+
+        function generateMessage() {
+            const dayName = document.getElementById('currentDay').value;
+            const dateInput = document.getElementById('scheduleDate').value;
+            const scheduleType = document.getElementById('scheduleType').value;
+            const specialNote = document.getElementById('specialNote').value.trim();
+            const dailySchedule = currentClassScheduleData[dayName] || []; 
+
+            // 1. Format Date
+            let formattedDate = 'Day/Date';
+            if (dateInput) { 
+                const dateObj = new Date(dateInput + 'T00:00:00');
+                const options = { weekday: 'long', day: '2-digit', month: 'short' };
+                formattedDate = dateObj.toLocaleDateString('en-US', options).replace(',', ''); 
+            }
+            
+            let message = `Class Schedule for Tomorrow (${formattedDate}) :\n\n`;
+            let finalSchedule = [];
+
+            // 2. Class Filtering based on Time Limit
+            let timeLimit = null;
+            const timeMatch = specialNote.match(/till\s*(\d{1,2}:\d{2})\s*(?:AM|PM)?/i);
+            if (timeMatch) { 
+                const timeString = timeMatch[1].toLowerCase();
+                let [hours, minutes] = timeString.split(':').map(Number);
+                if (specialNote.toLowerCase().includes('pm') && hours !== 12) { hours += 12; } 
+                else if (specialNote.toLowerCase().includes('am') && hours === 12) { hours = 0; }
+                timeLimit = hours * 100 + minutes;
+            }
+
+            if (dayName === "Friday" || dayName === "Saturday") {
+                finalSchedule.push(dailySchedule.find(c => c.topic.toLowerCase().includes('holiday')) || dailySchedule[0]);
+            } else {
+                const canceledIndices = new Set();
+                if (scheduleType === 'partial') {
+                    document.querySelectorAll('input[name="classCanceled"]:checked').forEach(checkbox => {
+                        canceledIndices.add(parseInt(checkbox.value));
+                    });
+                }
+                
+                dailySchedule.forEach((classInfo, index) => {
+                    if (!classInfo || !classInfo.time) return; 
+
+                    // Time limit check
+                    const endTimeStr = classInfo.time.split('-')[1] ? classInfo.time.split('-')[1].trim() : "00:00"; 
+                    const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
+                    const endTimeNumeric = endHours * 100 + endMinutes;
+
+                    if (timeLimit && endTimeNumeric > timeLimit) { return; }
+
+                    if (classInfo.topic && classInfo.topic.toLowerCase().includes('no class')) {
+                        finalSchedule.push(classInfo); 
+                    } else if (classInfo.topic && canceledIndices.has(index)) {
+                        finalSchedule.push({ time: classInfo.time, topic: "No class (Canceled)", shortName: "", fullName: "", room: "" });
+                    } else if (classInfo.topic) {
+                        finalSchedule.push(classInfo);
+                    }
+                });
+            }
+
+            // 3. Generate Message Body
+            finalSchedule.forEach(classInfo => {
+                 if (!classInfo || !classInfo.time) return; 
+                const teacherInfo = (classInfo.shortName ? `${classInfo.shortName} (${classInfo.fullName})` : classInfo.fullName ? `(${classInfo.fullName})` : '').trim();
+                const roomInfo = classInfo.room && classInfo.room !== "N/A" ? `>>> Room ${classInfo.room}` : "";
+                
+                if (classInfo.topic && classInfo.topic.toLowerCase().includes("no class")) {
+                    message += `${classInfo.time} ➤ ${classInfo.topic}\n`;
+                } else if (classInfo.topic) {
+                    message += `${classInfo.time} ➤ ${teacherInfo} >>> ${classInfo.topic} ${roomInfo}\n`;
+                }
+            });
+
+
+            // 4. Add Special Note (Always active)
+            if (specialNote) {
+                message += `\n*** Special Note ***\n`;
+                message += specialNote;
+            }
+
+            document.getElementById('messagePreview').value = message;
+        }
+
+        // --- Reference Table Creation Logic (Reflects LocalStorage changes) ---
+        function createReferenceTable() {
+            const tableBody = document.querySelector('#referenceTable tbody');
+            tableBody.innerHTML = '';
+            
+            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+            days.forEach(day => {
+                const dailySchedule = currentClassScheduleData[day] || []; 
+                const displaySchedule = dailySchedule.filter(item => item.time || item.topic);
+                
+                const rowCount = displaySchedule.length;
+                
+                if (rowCount === 0) return; 
+
+                displaySchedule.forEach((classInfo, index) => {
+                    const row = tableBody.insertRow();
+                    
+                    if (index === 0) {
+                        const dayCell = row.insertCell();
+                        dayCell.textContent = day;
+                        dayCell.rowSpan = rowCount;
+                    }
+                    
+                    row.insertCell().textContent = classInfo.time;
+                    row.insertCell().textContent = classInfo.topic;
+                    row.insertCell().textContent = classInfo.shortName;
+                    row.insertCell().textContent = classInfo.fullName;
+                    row.insertCell().textContent = classInfo.room;
+                });
+            });
+        }
+        
+        function copyMessage() { 
+            const messageTextarea = document.getElementById('messagePreview');
+            messageTextarea.select(); 
+            messageTextarea.setSelectionRange(0, 99999); 
+            try { navigator.clipboard.writeText(messageTextarea.value); alert('Message copied successfully!'); } 
+            catch (err) { document.execCommand('copy'); alert('Message copied! (Fallback)'); }
+        }
+
+        // --- Initialization ---
+        function initApp() {
+             // 1. Load data first (from LocalStorage or default)
+            loadRoutineFromLocalStorage(); 
+
+            // 2. Set default date (tomorrow)
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const yyyy = tomorrow.getFullYear();
+            const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const dd = String(tomorrow.getDate()).padStart(2, '0');
+            document.getElementById('scheduleDate').value = `${yyyy}-${mm}-${dd}`;
+            
+            // 3. Render all components based on current data
+            createReferenceTable(); 
+            updateDayAndGenerate(); 
+        }
+
+        // --- Event Listeners for Editor Modal ---
+        window.onclick = function(event) {
+            const modal = document.getElementById('editorModal');
+            if (event.target == modal) {
+                closeEditor();
+            }
+        }
+        
+        window.onload = initApp;
+        
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                    console.log('SW registered: ', registration);
+                }).catch(registrationError => {
+                    console.log('SW registration failed: ', registrationError);
+                });
+            });
+        }
+    </script>
+    ...
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      // service-worker.js ফাইলটি নিবন্ধিত হচ্ছে
+      navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+        console.log('ServiceWorker registration successful');
+      }, function(err) {
+        console.log('ServiceWorker registration failed: ', err);
+      });
+    });
+  }
+</script>
+</body>
+</html>
