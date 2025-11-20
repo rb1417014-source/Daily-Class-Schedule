@@ -3,239 +3,435 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Schedule</title>
+    <title>Class Schedule Generator</title>
     
     <link rel="manifest" href="manifest.json">
     
     <style>
+        /* --- Theme Variables --- */
+        :root {
+            /* Light Theme (Default Values) */
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+            --heading-color: #0056b3;
+            --card-bg: #fff;
+            --input-bg: #fff;
+            --input-text: #333;
+            --border-color: #ccc;
+            --shadow-color: rgba(0,0,0,0.1);
+            
+            --msg-bg: #e9f7ef;
+            --msg-border: #c3e6cb;
+            
+            --table-th-bg: #f2f2f2;
+            --table-border: #ddd;
+            --highlight-bg: #fffacd;
+            
+            --modal-overlay: rgba(0,0,0,0.4);
+            --modal-content-bg: #fefefe;
+            
+            --btn-hover-brightness: 100%;
+            
+            /* Optional/Warning colors */
+            --opt-bg: #fff3cd;
+            --opt-border: #ffc107;
+            
+            /* Manager section */
+            --manager-bg: #f9f9f9;
+            --manager-item-border: #ccc;
+        }
+
+        /* Dark Theme Overrides */
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --heading-color: #64b5f6;
+            --card-bg: #1e1e1e;
+            --input-bg: #2d2d2d;
+            --input-text: #e0e0e0;
+            --border-color: #444;
+            --shadow-color: rgba(0,0,0,0.5);
+            
+            --msg-bg: #1b3a2b;
+            --msg-border: #2e5c40;
+            
+            --table-th-bg: #333;
+            --table-border: #444;
+            --highlight-bg: #5c5c3d;
+            
+            --modal-overlay: rgba(0,0,0,0.7);
+            --modal-content-bg: #1e1e1e;
+            
+            --opt-bg: #3e3620;
+            --opt-border: #856404;
+            
+            --manager-bg: #252525;
+            --manager-item-border: #555;
+        }
+
+        /* General Styles */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
-            background-color: #f4f4f9;
-            color: #333;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
-        h1, h2 {
-            color: #0056b3;
-            border-bottom: 2px solid #ccc;
+        h1, h2, h3 {
+            color: var(--heading-color);
             padding-bottom: 5px;
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
         }
         .container {
             max-width: 900px;
             margin: auto;
         }
+        
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px var(--shadow-color);
+            z-index: 1100; /* Above standard content */
+            transition: all 0.3s ease;
+        }
+        .theme-toggle-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* Input & Controls */
+        .controls {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="date"], input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+            background-color: var(--input-bg);
+            color: var(--input-text);
+        }
+        
+        /* Message Output */
         .message-output {
             margin-top: 30px;
             padding: 15px;
-            background-color: #e9f7ef;
-            border: 1px solid #c3e6cb;
+            background-color: var(--msg-bg);
+            border: 1px solid var(--msg-border);
             border-radius: 5px;
         }
         textarea#messagePreview {
             width: 100%;
             height: 200px;
             padding: 10px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border-color);
             border-radius: 4px;
             font-size: 14px;
-            line-height: 1.5;
-            box-sizing: border-box;
+            resize: vertical;
+            margin-bottom: 10px; 
+            background-color: var(--input-bg);
+            color: var(--input-text);
         }
-        .copy-section {
-            margin-top: 10px;
-            text-align: right;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
+
+        /* Buttons */
+        .btn {
+            padding: 10px 15px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             transition: background-color 0.3s;
-            margin-left: 5px;
         }
-        button:hover {
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-success:hover {
             background-color: #1e7e34;
         }
-        .control-section {
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-group {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: #fff;
+            gap: 10px;
+            margin-top: 15px;
         }
-        .control-group {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
+        .btn-icon {
+            padding: 8px 12px;
+            font-size: 14px;
         }
-        .control-item {
-            display: flex;
-            flex-direction: column;
-            min-width: 250px;
-            flex-grow: 1;
-        }
-        .control-item label {
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #0056b3;
-        }
-        .control-item input[type="date"], .control-item select, .control-item input[type="text"], .control-item textarea {
-            padding: 8px;
-            border: 1px solid #ccc;
+
+        /* Class Selection */
+        #optionalClasses {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid var(--opt-border);
+            background-color: var(--opt-bg);
             border-radius: 4px;
         }
-        #optionalClasses {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        .class-list label {
+        #classListContainer label {
             display: block;
             font-weight: normal;
-            margin-bottom: 5px;
+            margin-top: 5px;
         }
-        .class-list input {
-            margin-right: 5px;
-        }
-        /* Table styles */
-        table {
+        
+        /* Routine Table (Reference) */
+        #referenceTable {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            background-color: #fff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-        th, td {
-            border: 1px solid #ddd;
+        #referenceTable th, #referenceTable td {
+            border: 1px solid var(--table-border);
             padding: 8px;
             text-align: left;
-            font-size: 13px;
+            font-size: 14px;
         }
-        th {
-            background-color: #e9ecef;
-            color: #333;
+        #referenceTable th {
+            background-color: var(--table-th-bg);
         }
-        #referenceTable td:first-child {
-            font-weight: bold;
-            background-color: #f0f0f0;
-            vertical-align: top;
-        }
-        /* New Editor Styles */
-        #editorModal {
+
+        /* Modal Styles */
+        .modal {
             display: none; 
             position: fixed; 
-            z-index: 10; 
+            z-index: 1000; 
             left: 0;
             top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.7); 
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: var(--modal-overlay); 
+            padding-top: 60px;
         }
         .modal-content {
-            background-color: #fefefe;
-            margin: 5% auto;
+            background-color: var(--modal-content-bg);
+            margin: 5% auto; 
             padding: 20px;
-            border: 1px solid #888;
-            width: 90%; 
-            max-width: 1200px;
+            border: 1px solid var(--border-color);
+            width: 80%; 
             border-radius: 8px;
+            position: relative;
+            color: var(--text-color);
         }
         .close-button {
             color: #aaa;
-            float: right;
+            position: absolute; 
+            top: 20px;          
+            right: 20px;        
             font-size: 28px;
             font-weight: bold;
+            cursor: pointer;
         }
         .close-button:hover,
         .close-button:focus {
-            color: #000;
+            color: var(--text-color);
             text-decoration: none;
-            cursor: pointer;
         }
-        /* Editable table styles */
+
+        /* Editor Table Styles */
+        #editableRoutineTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        #editableRoutineTable th, #editableRoutineTable td {
+            border: 1px solid var(--table-border);
+            padding: 6px;
+            text-align: left;
+            font-size: 12px;
+            vertical-align: middle;
+        }
         #editableRoutineTable td[contenteditable="true"] {
-            background-color: #fffacd; 
+            background-color: var(--highlight-bg);
+            color: var(--input-text);
             cursor: text;
         }
+        .day-header-cell {
+            text-align: center !important;
+        }
+        
+        /* New Dynamic Dropdown Styles */
+        .dynamic-select {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 5px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+        }
+        .manual-input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--input-text);
+        }
+        
+        /* Data Manager Styles */
+        .manager-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--manager-bg);
+        }
+        .data-list-container {
+            list-style-type: none;
+            padding: 0;
+        }
+        .data-list-container li {
+            border-bottom: 1px dotted var(--manager-item-border); 
+            padding: 5px 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-size: 14px;
+        }
+        .add-new-section input {
+            margin-bottom: 5px;
+        }
+        
+        /* Manager Button Boxes */
+        .manager-control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .manager-control-button {
+            flex: 1;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+        }
+        .manager-control-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Edit/Delete Button Fix */
+        .data-list-container button {
+            padding: 8px 10px !important; 
+            font-size: 12px !important;
+            margin-left: 5px !important;
+            border-radius: 4px !important;
+        }
+
+        /* Footer Style */
         footer {
             margin-top: 50px;
-            padding: 15px;
+            padding: 15px 0;
+            border-top: 1px solid var(--border-color);
             text-align: center;
             font-size: 12px;
-            color: #666;
-            border-top: 1px solid #ccc;
+            color: var(--text-color);
+            opacity: 0.8;
         }
-        .editor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        footer p {
+            margin: 3px 0;
         }
-        .editor-controls button {
-            margin-right: 10px;
-        }
+        
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="editor-header">
-            <h1>📅 Class Schedule Generator</h1>
-            <button onclick="openEditor()" style="background-color: #007bff;"><span style="font-size: 1.5em;">✏️</span> Edit Routine</button>
-        </div>
-        
-        <div class="control-section">
-            <div class="control-group">
-                <div class="control-item">
-                    <label for="scheduleDate">আগামীকালের তারিখ ক্যালেন্ডার থেকে নির্বাচন করুন:</label>
-                    <input type="date" id="scheduleDate" onchange="updateDayAndGenerate()">
-                </div>
-                
-                <div class="control-item">
-                    <label for="currentDay">নির্বাচিত দিন:</label>
-                    <input type="text" id="currentDay" value="Select a Date" readonly style="background-color: #eee;">
-                </div>
-            </div>
-            
-            <div class="control-group">
-                <div class="control-item">
-                    <label for="scheduleType">ক্লাস শিডিউলের ধরন নির্বাচন করুন:</label>
-                    <select id="scheduleType" onchange="toggleClassSelection()">
-                        <option value="full">All Classes Will Be Held</option>
-                        <option value="partial">Partial Schedule / Some Classes Are Canceled</option>
-                    </select>
-                </div>
-                
-                <div class="control-item">
-                    <label for="specialNote">বিশেষ মন্তব্য/ঘোষণা:</label>
-                    <textarea id="specialNote" oninput="generateMessage()" placeholder="Optional. e.g.: Today class will be held till 12:00 PM. Or, A general announcement..."></textarea>
-                </div>
-            </div>
+<!-- Theme Toggle Button -->
+<button id="themeToggle" class="theme-toggle-btn" onclick="cycleTheme()" title="Change Theme">
+    🖥️
+</button>
 
-            <div id="optionalClasses" style="display: none;">
-                <label>যে ক্লাসগুলো **হবে না** সেগুলো সিলেক্ট করুন:</label>
-                <div id="classListContainer" class="class-list">
-                    </div>
-            </div>
+<div class="container">
+    <h1 style="justify-content: center;"><span style="font-size: 24px;">📅</span> Class Schedule Generator</h1>
+
+    <div class="controls">
+        <div class="input-group">
+            <label for="scheduleDate">Select Date:</label>
+            <input type="date" id="scheduleDate" onchange="updateDayAndGenerate()">
         </div>
 
-        <div class="message-output">
-            <h2>Message Preview and Copy</h2>
-            <textarea id="messagePreview" readonly></textarea>
-            <div class="copy-section">
-                <button onclick="copyMessage()">Copy Message</button>
-            </div>
+        <div class="input-group">
+            <label for="currentDay">Day of the Week:</label>
+            <input type="text" id="currentDay" value="Select a Date" readonly>
+        </div>
+
+        <div class="input-group">
+            <label for="scheduleType">Schedule Type (e.g., Full class/ Partial class):</label>
+            <select id="scheduleType" onchange="toggleClassSelection()">
+                <option value="full">Full Schedule (Default)</option>
+                <option value="partial">Partial Schedule (Select canceled classes)</option>
+            </select>
+        </div>
+
+        <div id="optionalClasses" style="display:none;">
+            <p style="font-weight: bold;">Select Classes that ARE CANCELED:</p>
+            <div id="classListContainer">
+                </div>
+        </div>
+
+        <div class="input-group">
+            <label for="specialNote">Special Note (e.g., Exam Schedule, cause of class cancellation):</label>
+            <input type="text" id="specialNote" oninput="generateMessage()" placeholder="Type note here (Optional)">
         </div>
         
-        <h2>Final Class Schedule (Reference)</h2>
-        <p>The entire weekly routine for quick reference. Click 'Edit Routine' above to modify this data.</p>
+        </div>
+
+    <div class="message-output">
+        <h2><span style="font-size: 20px;">💬</span> Message Preview</h2>
+        <textarea id="messagePreview" readonly></textarea>
+        <button class="btn btn-success" onclick="copyMessage()" id="copyButton" style="width: 100%;">Copy Message</button>
+    </div>
+
+    <div class="controls" style="margin-top: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2><span style="font-size: 20px;">📋</span> Final Routine Schedule</h2>
+            <button class="btn btn-primary btn-icon" onclick="openEditor()">✏️ Edit Routine</button>
+        </div>
         <table id="referenceTable">
             <thead>
                 <tr>
@@ -251,589 +447,1100 @@
                 </tbody>
         </table>
     </div>
+</div>
 
-    <div id="editorModal" class="modal">
-        <div class="modal-content">
-            <span onclick="closeEditor()" class="close-button">&times;</span>
-            <h2>✏️ Edit Class Routine Table</h2>
-            <p style="color: red;">সরাসরি টেবিলের **হলুদ হাইলাইট করা** ঘরগুলোতে এডিট করুন। একটি ক্লাস বাদ দিতে সেটির `Class Topic` ঘরে "No class" লিখুন।</p>
-            
-            <div style="overflow-x: auto;">
-                <table id="editableRoutineTable">
-                    </table>
+<div id="editorModal" class="modal">
+    <div class="modal-content" style="max-width: 95%;">
+        <span onclick="closeEditor()" class="close-button">&times;</span>
+        <h2>✏️ Edit Class Routine</h2>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);">
+             <button class="btn btn-danger btn-icon" onclick="resetRoutine()">🔄 Reset to Default</button>
+             <button class="btn btn-success btn-icon" onclick="openManager()">⚙️ Manage Teachers/Topics/Rooms</button>
+        </div>
+        
+        <div style="max-height: 70vh; overflow-y: auto; margin-bottom: 20px;">
+            <table id="editableRoutineTable">
+                </table>
+        </div>
+        
+        <div class="btn-group" style="justify-content: flex-end;">
+            <button class="btn btn-success" onclick="saveRoutine()">💾 Save and Apply Changes</button>
             </div>
+    </div>
+</div>
 
-            <div class="editor-controls" style="margin-top: 20px;">
-                <button onclick="saveRoutine()" style="background-color: #ffc107; color: #333;">Save and Apply Changes</button>
-                <button onclick="resetRoutine()" style="background-color: #dc3545;">Reset to Default Routine</button>
+<div id="dataManagerModal" class="modal">
+    <div class="modal-content" style="max-width: 950px;">
+        <span onclick="closeManager()" class="close-button">&times;</span>
+        <h2>📚 Manage Teachers, Subjects & Rooms</h2>
+
+        <div class="manager-control-buttons">
+            <button class="manager-control-button" onclick="showManagerSection('teachers')">Manage Teachers</button>
+            <button class="manager-control-button" onclick="showManagerSection('topics')">Manage Subject/Topics</button>
+            <button class="manager-control-button" onclick="showManagerSection('rooms')">Manage Classrooms</button>
+        </div>
+        
+        <div style="max-height: 50vh; overflow-y: auto; padding: 10px;">
+            
+            <div id="managerSection_teachers" class="manager-section" style="display: block;">
+                <h3>Teachers</h3>
+                <ul id="dataListContainer_teachers" class="data-list-container">
+                    </ul>
+                <div class="add-new-section" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                    <p style="font-weight: bold;">Add New Teacher:</p>
+                    <p style="font-size: 12px; color: #666;">Format Example: **ShortName, FullName** (e.g., SKN, S.K. Noman)</p>
+                    <input type="text" id="teacherShortNameInput" placeholder="Short Name (e.g., SKN)" class="new-item-input">
+                    <input type="text" id="teacherFullNameInput" placeholder="Full Name (e.g., S.K. Noman)" class="new-item-input">
+                    <button onclick="addItem('teachers')" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Add New Teacher</button>
+                </div>
+            </div>
+            
+            <div id="managerSection_topics" class="manager-section" style="display: none;">
+                <h3>Subjects / Topics</h3>
+                <ul id="dataListContainer_topics" class="data-list-container">
+                    </ul>
+                <div class="add-new-section" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                    <p style="font-weight: bold;">Add New Topic:</p>
+                    <p style="font-size: 12px; color: #666;">Format Example: **Subject : Topic** (e.g., Chemistry : Nomenclature)</p>
+                    <input type="text" id="topicSubjectInput" placeholder="Subject Name" class="new-item-input">
+                    <input type="text" id="topicTopicInput" placeholder="Topic Name / Non Major" class="new-item-input">
+                    <button onclick="addItem('topics')" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Add New Topic</button>
+                </div>
+            </div>
+            
+            <div id="managerSection_rooms" class="manager-section" style="display: none;">
+                <h3>Rooms</h3>
+                <ul id="dataListContainer_rooms" class="data-list-container">
+                    </ul>
+                <div class="add-new-section" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 10px;">
+                    <p style="font-weight: bold;">Add New Room:</p>
+                    <p style="font-size: 12px; color: #666;">Format Example: **401** and **Mathematics Dept.** (Dept. name required for non-major classes only)</p>
+                    <input type="text" id="roomNumberInput" placeholder="Room Number (e.g., 401)" class="new-item-input">
+                    <input type="text" id="roomDeptInput" placeholder="Department Name (or None)" class="new-item-input">
+                    <button onclick="addItem('rooms')" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Add New Room</button>
+                </div>
             </div>
         </div>
     </div>
+</div>
+
+<footer>
+    <p>It's an open-source Web app.</p>
+    <p>Created by - **@MdJaberAhammedJisan**</p>
+    <p>App Developed by - **@Je.Pi**</p>
+</footer>
+
+<script>
+    const LOCAL_STORAGE_KEY = 'classScheduleData';
     
-    <footer>
-        <p>Web app created by **@MdJaberAhammedJisan**</p>
-        <p>Web app Developed by **je.pi**</p>
-    </footer>
-
-    <script>
-        const LOCAL_STORAGE_KEY = 'classScheduleData';
-
-        // Default Data Structure 
-        const defaultClassScheduleData = {
-            "Sunday": [
-                { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
-                { time: "09:45 - 10:30", topic: "Math (Non Major)", shortName: "SS", fullName: "Sarwar Sadek", room: "804 (Math Dept.)" },
-                { time: "10:30 - 11:15", topic: "Organic: Nomenclature, Conformation and Stability", shortName: "MBA", fullName: "Md. Badiul Alam Khan Chowdhury", room: "401" },
-                { time: "11:15 - 12:00", topic: "No class", shortName: "", fullName: "", room: "" },
-                { time: "12:00 - 12:45", topic: "Physical: States of Mater and Gaseous State", shortName: "DQ", fullName: "Dr. Md. Abdul Quddus", room: "401" },
-                { time: "12:45 - 01:30", topic: "Inorganic: Reaction Rate", shortName: "RA", fullName: "Raju Ahemmed", room: "401" }
-            ],
-            "Monday": [
-                { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
-                { time: "09:45 - 10:30", topic: "Physical: Energetics in Chemistry", shortName: "NS", fullName: "Nilufar Sultana", room: "401" },
-                { time: "10:30 - 11:15", topic: "Organic: Unsaturated Hydrocarbons", shortName: "FR", fullName: "Professor Fawzia Rahman", room: "401" },
-                { time: "11:15 - 12:00", topic: "No class", shortName: "", fullName: "", room: "" },
-                { time: "12:00 - 12:45", topic: "Inorganic: Acids and Bases", shortName: "YA", fullName: "Yeasmin Akhter", room: "401" },
-                { time: "12:45 - 01:30", topic: "Organic: Aldehyde and Ketone", shortName: "AK", fullName: "Md. Abdul Kadar", room: "401" }
-            ],
-            "Tuesday": [
-                { time: "09:00 - 09:45", topic: "Physics (Non Major)", shortName: "RK", fullName: "SM Riazul Karim", room: "602 (Physicd Dept.)" }, 
-                { time: "09:45 - 10:30", topic: "Math (Non Major)", shortName: "MA", fullName: "Md. Masud Alam", room: "804 (Math Dept.)" },
-                { time: "10:30 - 11:15", topic: "No class", shortName: "", fullName: "", room: "" },
-                { time: "11:15 - 12:00", topic: "Inorganic: Atomic Structure of the Elements", shortName: "SI", fullName: "Syful Islam", room: "401" },
-                { time: "12:00 - 12:45", topic: "Physical: Chemical Equilibrium", shortName: "MYM", fullName: "Mohammed Younous Mia", room: "401" },
-                { time: "12:45 - 01:30", topic: "No class", shortName: "", fullName: "", room: "" }
-            ],
-            "Wednesday": [
-                { time: "09:00 - 09:45", topic: "Physics (Non Major)", shortName: "MAB", fullName: "Md. Abdul Baten", room: "804 (Math Dept.)" },
-                { time: "09:45 - 10:30", topic: "HEIB (Non Major)", shortName: "", fullName: "", room: "Islamic Studies Dept." },
-                { time: "10:30 - 11:15", topic: "No class", shortName: "", fullName: "", room: "" },
-                { time: "11:15 - 12:00", topic: "Organic: Alkane and Cycloalkane", shortName: "SH", fullName: "Shirin Hoque", room: "401" },
-                { time: "12:00 - 12:45", topic: "Practical", shortName: "MYM + SI + YA", fullName: "MYM, SI, YA (Combined)", room: "Chemistry Laboratory" }, 
-                { time: "12:45 - 01:30", topic: "Practical", shortName: "MYM + SI + YA", fullName: "MYM, SI, YA (Combined)", room: "Chemistry Laboratory" }
-            ],
-            "Thursday": [
-                { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
-                { time: "09:45 - 10:30", topic: "HEIB (Non Major)", shortName: "", fullName: "", room: "Islamic Studies Dept." },
-                { time: "10:30 - 11:15", topic: "Inorganic: Periodic Table and Periodic Properties", shortName: "TKD", fullName: "Tapash Kumar Datta", room: "401" },
-                { time: "11:15 - 12:00", topic: "Physical: Solution and Colligative Properties", shortName: "SG", fullName: "Suman Ghosh", room: "401" },
-                { time: "12:00 - 12:45", topic: "Organic: Alcohol, Phenol, Ether", shortName: "FA", fullName: "Mohammad Faruk Ahmed", room: "401" },
-                { time: "12:45 - 01:30", topic: "Physical: Chemical Bond", shortName: "MRB", fullName: "Mihir Rongon Bhowmik", room: "401" }
-            ],
-            "Friday": [
-                { time: "09:00 - 01:30", topic: "No Class (Weekly Holiday)", shortName: "", fullName: "", room: "" }
-            ],
-            "Saturday": [
-                { time: "09:00 - 01:30", topic: "No Class (Weekly Holiday)", shortName: "", fullName: "", room: "" }
-            ]
-        };
-
-        const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        let currentClassScheduleData = {}; 
-
-        // --- Data Loading and Saving ---
-        function loadRoutineFromLocalStorage() {
-            const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
-            if (savedData) {
-                try {
-                    currentClassScheduleData = JSON.parse(savedData);
-                } catch (e) {
-                    currentClassScheduleData = defaultClassScheduleData;
-                }
+    // --- Theme Switcher Logic ---
+    const THEME_KEY = 'app_theme';
+    const themeBtn = document.getElementById('themeToggle');
+    
+    // Available themes
+    const THEMES = ['system', 'light', 'dark'];
+    
+    function getSavedTheme() {
+        return localStorage.getItem(THEME_KEY) || 'system';
+    }
+    
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        
+        // Update Button Text/Icon based on Mode
+        // System = 🖥️, Light = ☀️, Dark = 🌙
+        if (theme === 'system') {
+            themeBtn.textContent = '🖥️';
+            themeBtn.title = "System Theme (Default)";
+            
+            // Check system preference
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                root.setAttribute('data-theme', 'dark');
             } else {
+                root.setAttribute('data-theme', 'light');
+            }
+        } else if (theme === 'light') {
+            themeBtn.textContent = '☀️';
+            themeBtn.title = "Light Theme";
+            root.setAttribute('data-theme', 'light');
+        } else if (theme === 'dark') {
+            themeBtn.textContent = '🌙';
+            themeBtn.title = "Dark Theme";
+            root.setAttribute('data-theme', 'dark');
+        }
+    }
+    
+    function cycleTheme() {
+        const currentTheme = getSavedTheme();
+        let nextIndex = (THEMES.indexOf(currentTheme) + 1) % THEMES.length;
+        const nextTheme = THEMES[nextIndex];
+        
+        localStorage.setItem(THEME_KEY, nextTheme);
+        applyTheme(nextTheme);
+    }
+    
+    // Listen for system changes if in system mode
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        if (getSavedTheme() === 'system') {
+            applyTheme('system');
+        }
+    });
+    
+    // Initial Theme Application
+    applyTheme(getSavedTheme());
+
+    // --- NEW: Dynamic Data Management (Teachers, Topics, Rooms) ---
+    const DATA_KEYS = {
+        TEACHERS: 'app_teachers',
+        TOPICS: 'app_topics',
+        ROOMS: 'app_rooms'
+    };
+
+    // Fix 2a: Helper function for adding ordinal suffix
+    function getOrdinalSuffix(day) {
+        if (day > 3 && day < 21) return 'th'; 
+        switch (day % 10) {
+            case 1:  return 'st';
+            case 2:  return 'nd';
+            case 3:  return 'rd';
+            default: return 'th';
+        }
+    }
+    
+    // Function to load data from localStorage or use initial data
+    function getAppData(key, initialData) {
+        const data = localStorage.getItem(key);
+        if (data) {
+            try { return JSON.parse(data); } catch(e) { return initialData; }
+        }
+        return initialData;
+    }
+    
+    // Updated INITIAL_DATA structure for multi-field use (Fix 2)
+    const INITIAL_DATA = {
+        teachers: [
+            { short: 'SS', full: 'Sarwar Sadek' },
+            { short: 'MBA', full: 'Md. Badiul Alam Khan Chowdhury' },
+            { short: 'DQ', full: 'Dr. Md. Abdul Quddus' },
+            { short: 'RA', full: 'Raju Ahemmed' },
+            { short: 'NS', full: 'Nilufar Sultana' },
+            { short: 'FR', full: 'Professor Fawzia Rahman' },
+            { short: 'YA', full: 'Yeasmin Akhter' },
+            { short: 'AK', full: 'Md. Abdul Kadar' },
+            { short: 'RK', full: 'SM Riazul Karim' },
+            { short: 'MA', full: 'Md. Masud Alam' },
+            { short: 'SI', full: 'Syful Islam' },
+            { short: 'MYM', full: 'Mohammed Younous Mia' },
+            { short: 'MAB', full: 'Md. Abdul Baten' },
+            { short: 'SH', full: 'Shirin Hoque' },
+            { short: 'TKD', full: 'Tapash Kumar Datta' },
+            { short: 'SG', full: 'Suman Ghosh' },
+            { short: 'FA', full: 'Mohammad Faruk Ahmed' },
+            { short: 'MRB', full: 'Mihir Rongon Bhowmik' }
+        ],
+        topics: [
+            { subject: 'None', topic: 'No class' },
+            { subject: 'None', topic: 'No Class (Weekly Holiday)' },
+            { subject: 'Math', topic: 'Non Major' },
+            { subject: 'Organic', topic: 'Nomenclature, Conformation and Stability' }, 
+            { subject: 'Physical', topic: 'States of Mater and Gaseous State' }, 
+            { subject: 'Inorganic', topic: 'Reaction Rate' }, 
+            { subject: 'Physical', topic: 'Energetics in Chemistry' }, 
+            { subject: 'Organic', topic: 'Unsaturated Hydrocarbons' }, 
+            { subject: 'Inorganic', topic: 'Acids and Bases' }, 
+            { subject: 'Organic', topic: 'Aldehyde and Ketone' }, 
+            { subject: 'Physics', topic: 'Non Major' }, 
+            { subject: 'Inorganic', topic: 'Atomic Structure of the Elements' }, 
+            { subject: 'Physical', topic: 'Chemical Equilibrium' }, 
+            { subject: 'HEIB', topic: 'Non Major' }, 
+            { subject: 'Organic', topic: 'Alkane and Cycloalkane' }, 
+            { subject: 'Chemistry', topic: 'Practical' }, 
+            { subject: 'Inorganic', topic: 'Periodic Table and Periodic Properties' }, 
+            { subject: 'Physical', topic: 'Solution and Colligative Properties' }, 
+            { subject: 'Organic', topic: 'Alcohol, Phenol, Ether' }, 
+            { subject: 'Physical', topic: 'Chemical Bond' }
+        ],
+        rooms: [
+            { number: '401', dept: 'None' }, 
+            { number: '402', dept: 'None' }, 
+            { number: '403', dept: 'None' }, 
+            { number: 'Conference Room', dept: 'None' }, 
+            { number: 'Chemistry Laboratory', dept: 'None' }, 
+            { number: 'Islamic Studies Dept. Office', dept: 'Islamic Studies Dept.' },
+            { number: '804', dept: 'Mathematics Dept.' }, 
+            { number: '602', dept: 'Physics Dept.' }, 
+            { number: 'History and Tradition of Islam Dept. Office', dept: 'History and Tradition of Islam Dept.' }, 
+            { number: 'Sociology Dept. Office', dept: 'Sociology Dept.' }, 
+            { number: 'History Dept. Office', dept: 'History Dept.' }, 
+            { number: 'English Dept. Office', dept: 'English Dept.' }, 
+            { number: 'Political Science Dept. Office', dept: 'Political Science Dept.' }
+        ]
+    };
+
+    // Global data object for dynamic lists (loaded immediately)
+    let APP_DATA = {
+        teachers: getAppData(DATA_KEYS.TEACHERS, INITIAL_DATA.teachers),
+        topics: getAppData(DATA_KEYS.TOPICS, INITIAL_DATA.topics),
+        rooms: getAppData(DATA_KEYS.ROOMS, INITIAL_DATA.rooms)
+    };
+    
+    // Function to save dynamic data to localStorage
+    function saveDynamicData(dataType, dataArray) {
+        let key = DATA_KEYS[dataType.toUpperCase()];
+        if (key) {
+            localStorage.setItem(key, JSON.stringify(dataArray));
+            APP_DATA[dataType] = dataArray; // Update in-memory data
+        }
+    }
+    
+    // --- Manager Functions (Fix 1 & 2) ---
+    function openManager() {
+        document.getElementById('dataManagerModal').style.display = 'block';
+        // Load all three sections on open
+        updateManagementSection('teachers');
+        updateManagementSection('topics');
+        updateManagementSection('rooms');
+        // Initial view is Teachers
+        showManagerSection('teachers');
+    }
+
+    function closeManager() {
+        document.getElementById('dataManagerModal').style.display = 'none';
+    }
+    
+    // NEW: Function to toggle manager sections
+    function showManagerSection(dataType) {
+        const sections = ['teachers', 'topics', 'rooms'];
+        sections.forEach(sec => {
+            const el = document.getElementById(`managerSection_${sec}`);
+            if (el) {
+                el.style.display = sec === dataType ? 'block' : 'none';
+            }
+        });
+    }
+    
+    // Helper function to get display value based on data type
+    function getDisplayValue(dataType, item) {
+         if (dataType === 'teachers') {
+            return `[${item.short}] ${item.full}`;
+        } else if (dataType === 'topics') {
+            return item.subject === 'None' ? item.topic : `${item.subject} : ${item.topic}`;
+        } else if (dataType === 'rooms') {
+            return item.dept === 'None' ? item.number : `${item.number} (${item.dept})`;
+        }
+        return '';
+    }
+
+    // Fix 1 & 2: Update UI list with Edit and Delete buttons
+    function updateManagementSection(dataType) {
+        const listContainer = document.getElementById(`dataListContainer_${dataType}`);
+        if (!listContainer) return;
+        
+        listContainer.innerHTML = '';
+        const dataArray = APP_DATA[dataType];
+        
+        dataArray.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.style.cssText = 'border-bottom: 1px dotted var(--manager-item-border); padding: 5px 0; display: flex; justify-content: space-between; align-items: center; font-size: 14px;';
+
+            const displayValue = getDisplayValue(dataType, item);
+            
+            // Fixed button sizing/style in CSS for consistent look
+            li.innerHTML = `
+                <span>${displayValue}</span>
+                <div>
+                    <button onclick="editItemPrompt('${dataType}', ${index})" style="background-color: #ff9800; color: white; border: none; padding: 8px 10px; font-size: 12px; margin-left: 5px; border-radius: 4px; cursor: pointer;">✏️ Edit</button>
+                    <button onclick="deleteItem('${dataType}', ${index})" style="background-color: #dc3545; color: white; border: none; padding: 8px 10px; font-size: 12px; margin-left: 5px; border-radius: 4px; cursor: pointer;">🗑️ Delete</button>
+                </div>
+            `;
+            listContainer.appendChild(li);
+        });
+    }
+
+    // Fix 1: Delete Item
+    function deleteItem(dataType, index) {
+        if (!confirm(`Are you sure you want to delete this ${dataType.slice(0, -1)}?`)) return;
+        
+        let dataArray = APP_DATA[dataType];
+        dataArray.splice(index, 1);
+        
+        saveDynamicData(dataType, dataArray);
+        updateManagementSection(dataType);
+    }
+
+    // Fix 2: Add Item (using the new two input fields)
+    function addItem(dataType) {
+        let input1, input2;
+        let newItem;
+
+        if (dataType === 'teachers') {
+            input1 = document.getElementById('teacherShortNameInput');
+            input2 = document.getElementById('teacherFullNameInput');
+            const short = input1.value.trim();
+            const full = input2.value.trim();
+            if (!short || !full) return alert('Short name and Full name are required.');
+            newItem = { short, full };
+        } else if (dataType === 'topics') {
+            input1 = document.getElementById('topicSubjectInput');
+            input2 = document.getElementById('topicTopicInput');
+            const subject = input1.value.trim() || 'None';
+            const topic = input2.value.trim();
+            if (!topic) return alert('Topic or Non Major name is required.');
+            newItem = { subject, topic };
+        } else if (dataType === 'rooms') {
+            input1 = document.getElementById('roomNumberInput');
+            input2 = document.getElementById('roomDeptInput');
+            const number = input1.value.trim();
+            const dept = input2.value.trim() || 'None'; 
+            if (!number) return alert('Room Number is required.');
+            newItem = { number, dept };
+        }
+        
+        APP_DATA[dataType].push(newItem);
+        saveDynamicData(dataType, APP_DATA[dataType]);
+        updateManagementSection(dataType);
+        input1.value = input2.value = ''; // Clear inputs
+    }
+    
+    // Fix 1: Edit Item using Prompt (Correction Functionality)
+    function editItemPrompt(dataType, index) {
+        const item = APP_DATA[dataType][index];
+        let current = getDisplayValue(dataType, item);
+        let promptText, formatHint;
+
+        if (dataType === 'teachers') {
+            formatHint = `ShortName, FullName (e.g., SKN, S.K. Noman)`;
+            current = `${item.short}, ${item.full}`;
+            promptText = `Edit Teacher (${formatHint}):`;
+        } else if (dataType === 'topics') {
+            formatHint = `Subject : Topic (e.g., Chemistry : Nomenclature)`;
+            current = `${item.subject} : ${item.topic}`;
+            promptText = `Edit Topic (${formatHint}):`;
+        } else if (dataType === 'rooms') {
+            formatHint = `Room Number, Department Name (e.g., 401, Mathematics Dept.) or (401, None)`;
+            current = `${item.number}, ${item.dept}`;
+            promptText = `Edit Room (${formatHint}):`;
+        }
+
+        const newName = prompt(promptText, current);
+        
+        if (newName === null) return; // Cancelled
+
+        let parts = newName.split(':');
+        // Handle teacher/room comma separation
+        if (dataType === 'teachers' || dataType === 'rooms') {
+             parts = newName.split(',');
+        }
+        
+        let isValid = true;
+        let updatedItem;
+
+        if (dataType === 'teachers' && parts.length === 2) {
+            updatedItem = { short: parts[0].trim(), full: parts[1].trim() };
+        } else if (dataType === 'topics' && parts.length === 2) {
+            updatedItem = { subject: parts[0].trim(), topic: parts[1].trim() };
+        } else if (dataType === 'rooms') {
+            if (parts.length === 2) {
+                updatedItem = { number: parts[0].trim(), dept: parts[1].trim() };
+            } else if (parts.length === 1) {
+                 updatedItem = { number: parts[0].trim(), dept: 'None' };
+            } else {
+                isValid = false;
+            }
+        } else {
+            alert(`Invalid format! Please use the format: ${formatHint}`);
+            isValid = false;
+        }
+
+        if (isValid) {
+            APP_DATA[dataType][index] = updatedItem;
+            saveDynamicData(dataType, APP_DATA[dataType]);
+            updateManagementSection(dataType);
+        }
+    }
+    
+    // Function to create dynamic dropdown HTML for table editor cells (Fix 2 & 3 logic + New: Show all options)
+    function createDropdownHTML(dataType, currentValue) {
+        const dataList = APP_DATA[dataType] || [];
+        
+        // 1. Determine the selected value for checking
+        let checkValue = currentValue;
+        
+        // 2. Start with the text input (fallback and manual entry)
+        // The dropdown will update this input's value
+        let html = `<input type="text" value="${currentValue}" class="manual-input" data-type="${dataType}" placeholder="Type or Select..." oninput="this.nextElementSibling.value = this.value">`;
+        
+        if (dataList.length === 0) {
+             return html;
+        }
+
+        // 3. Select element: onchange, it updates the hidden input
+        html += `<select class="dynamic-select" onchange="this.previousElementSibling.value = this.value; this.previousElementSibling.dispatchEvent(new Event('input'))">`;
+
+        html += `<option value="">-- Select ${dataType.toUpperCase()} --</option>`;
+
+        dataList.forEach(item => {
+            let value, display;
+            
+            if (dataType === 'teachers') {
+                // Short name is the value for editor to look up full name on save
+                value = item.short;
+                display = `${item.short} (${item.full})`;
+                checkValue = currentValue; 
+            } else if (dataType === 'topics') {
+                // Topic name is the value
+                value = item.topic; 
+                display = item.subject === 'None' ? item.topic : `${item.subject} : ${item.topic}`;
+                checkValue = currentValue; 
+            } else if (dataType === 'rooms') {
+                // Full room string is the value
+                value = item.dept === 'None' ? item.number : `${item.number} (${item.dept})`;
+                display = value;
+                checkValue = currentValue; 
+            }
+            
+            const selected = (value === checkValue || display === checkValue) ? 'selected' : '';
+            html += `<option value="${value}" ${selected}>${display}</option>`;
+        });
+
+        html += `</select>`;
+        
+        return html;
+    }
+
+    const defaultClassScheduleData = {
+        "Sunday": [
+            { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
+            { time: "09:45 - 10:30", topic: "Math (Non Major)", shortName: "SS", fullName: "Sarwar Sadek", room: "804 (Mathematics Dept.)" },
+            { time: "10:30 - 11:15", topic: "Organic: Nomenclature, Conformation and Stability", shortName: "MBA", fullName: "Md. Badiul Alam Khan Chowdhury", room: "401" },
+            { time: "11:15 - 12:00", topic: "No class", shortName: "", fullName: "", room: "" },
+            { time: "12:00 - 12:45", topic: "Physical: States of Mater and Gaseous State", shortName: "DQ", fullName: "Dr. Md. Abdul Quddus", room: "401" },
+            { time: "12:45 - 01:30", topic: "Inorganic: Reaction Rate", shortName: "RA", fullName: "Raju Ahemmed", room: "401" }
+        ],
+        "Monday": [
+            { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
+            { time: "09:45 - 10:30", topic: "Physical: Energetics in Chemistry", shortName: "NS", fullName: "Nilufar Sultana", room: "401" },
+            { time: "10:30 - 11:15", topic: "Organic: Unsaturated Hydrocarbons", shortName: "FR", fullName: "Professor Fawzia Rahman", room: "401" },
+            { time: "11:15 - 12:00", topic: "No class", shortName: "", fullName: "", room: "" },
+            { time: "12:00 - 12:45", topic: "Inorganic: Acids and Bases", shortName: "YA", fullName: "Yeasmin Akhter", room: "401" },
+            { time: "12:45 - 01:30", topic: "Organic: Aldehyde and Ketone", shortName: "AK", fullName: "Md. Abdul Kadar", room: "401" }
+        ],
+        "Tuesday": [
+            { time: "09:00 - 09:45", topic: "Physics (Non Major)", shortName: "RK", fullName: "SM Riazul Karim", room: "602 (Physics Dept.)" }, 
+            { time: "09:45 - 10:30", topic: "Math (Non Major)", shortName: "MA", fullName: "Md. Masud Alam", room: "804 (Mathematics Dept.)" },
+            { time: "10:30 - 11:15", topic: "No class", shortName: "", fullName: "", room: "" },
+            { time: "11:15 - 12:00", topic: "Inorganic: Atomic Structure of the Elements", shortName: "SI", fullName: "Syful Islam", room: "401" },
+            { time: "12:00 - 12:45", topic: "Physical: Chemical Equilibrium", shortName: "MYM", fullName: "Mohammed Younous Mia", room: "401" },
+            { time: "12:45 - 01:30", topic: "No class", shortName: "", fullName: "", room: "" }
+        ],
+        "Wednesday": [
+            { time: "09:00 - 09:45", topic: "Physics (Non Major)", shortName: "MAB", fullName: "Md. Abdul Baten", room: "804 (Mathematics Dept.)" },
+            { time: "09:45 - 10:30", topic: "HEIB (Non Major)", shortName: "", fullName: "", room: "Islamic Studies Dept. Office" },
+            { time: "10:30 - 11:15", topic: "No class", shortName: "", fullName: "", room: "" },
+            { time: "11:15 - 12:00", topic: "Organic: Alkane and Cycloalkane", shortName: "SH", fullName: "Shirin Hoque", room: "401" },
+            { time: "12:00 - 12:45", topic: "Practical", shortName: "MYM + SI + YA", fullName: "MYM, SI, YA (Combined)", room: "Chemistry Laboratory" }, 
+            { time: "12:45 - 01:30", topic: "Practical", shortName: "MYM + SI + YA", fullName: "MYM, SI, YA (Combined)", room: "Chemistry Laboratory" }
+        ],
+        "Thursday": [
+            { time: "09:00 - 09:45", topic: "No class", shortName: "", fullName: "", room: "" },
+            { time: "09:45 - 10:30", topic: "HEIB (Non Major)", shortName: "", fullName: "", room: "Islamic Studies Dept. Office" },
+            { time: "10:30 - 11:15", topic: "Inorganic: Periodic Table and Periodic Properties", shortName: "TKD", fullName: "Tapash Kumar Datta", room: "401" },
+            { time: "11:15 - 12:00", topic: "Physical: Solution and Colligative Properties", shortName: "SG", fullName: "Suman Ghosh", room: "401" },
+            { time: "12:00 - 12:45", topic: "Organic: Alcohol, Phenol, Ether", shortName: "FA", fullName: "Mohammad Faruk Ahmed", room: "401" },
+            { time: "12:45 - 01:30", topic: "Physical: Chemical Bond", shortName: "MRB", fullName: "Mihir Rongon Bhowmik", room: "401" }
+        ],
+        "Friday": [
+            { time: "09:00 - 01:30", topic: "No Class (Weekly Holiday)", shortName: "", fullName: "", room: "" }
+        ],
+        "Saturday": [
+            { time: "09:00 - 01:30", topic: "No Class (Weekly Holiday)", shortName: "", fullName: "", room: "" }
+        ]
+    };
+
+    const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    let currentClassScheduleData = {}; 
+
+    // --- Data Loading and Saving ---
+    function loadRoutineFromLocalStorage() {
+        const savedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedData) {
+            try {
+                currentClassScheduleData = JSON.parse(savedData);
+            } catch (e) {
                 currentClassScheduleData = defaultClassScheduleData;
             }
+        } else {
+            currentClassScheduleData = defaultClassScheduleData;
         }
+    }
 
-        function saveRoutineToLocalStorage(data) {
-            try {
-                if (!data || !data.Sunday || !Array.isArray(data.Sunday)) {
-                     alert("Error: The data structure is invalid. Cannot save.");
-                     return;
-                }
-                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
-                alert("Routine updated and saved successfully! The app will now reload.");
-                window.location.reload(); 
-            } catch (e) {
-                alert("Error saving routine. Check console for details.");
-                console.error("Error saving routine:", e);
+    function saveRoutineToLocalStorage(data) {
+        try {
+            if (!data || !data.Sunday || !Array.isArray(data.Sunday)) {
+                 alert("Error: The data structure is invalid. Cannot save.");
+                 return;
             }
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+            alert("Routine updated and saved successfully! Reloading application...");
+            window.location.reload(); 
+        } catch (e) {
+            alert("Error saving routine. Check console for details.");
+            console.error("Error saving routine:", e);
         }
+    }
+    
+    // --- Close Editor Function (Fix 2) ---
+    function closeEditor() {
+        document.getElementById('editorModal').style.display = 'none';
+    }
+    
+    // --- Editor Functions (Table-based) ---
+    function openEditor() {
+        const table = document.getElementById('editableRoutineTable');
+        table.innerHTML = ''; // Clear previous content
+
+        // 1. Create Table Header
+        const header = table.createTHead();
+        const headerRow = header.insertRow();
+        ['Day', 'Time', 'Class Topic', 'Short Name', 'Full Name', 'Room', 'Action'].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            headerRow.appendChild(th);
+        });
+
+        // 2. Create Table Body (Editable Content)
+        const body = table.createTBody();
+        const daysToEdit = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
         
-        // --- Editor Functions (Table-based) ---
-        function openEditor() {
-            const table = document.getElementById('editableRoutineTable');
-            table.innerHTML = ''; // Clear previous content
-
-            // 1. Create Table Header (Added 'Action')
-            const header = table.createTHead();
-            const headerRow = header.insertRow();
-            ['Day', 'Time', 'Class Topic', 'Short Name', 'Full Name', 'Room', 'Action'].forEach(text => {
-                const th = document.createElement('th');
-                th.textContent = text;
-                headerRow.appendChild(th);
-            });
-
-            // 2. Create Table Body (Editable Content)
-            const body = table.createTBody();
-            const daysToEdit = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        daysToEdit.forEach(day => {
+            const dailySchedule = currentClassScheduleData[day] || [];
+            let rowCount = dailySchedule.length;
             
-            daysToEdit.forEach(day => {
-                const dailySchedule = currentClassScheduleData[day] || [];
-                let rowCount = dailySchedule.length;
-                
-                // If a day is empty, add one default editable row
-                if (rowCount === 0) {
-                     dailySchedule.push({ time: "00:00 - 00:00", topic: "New Slot", shortName: "", fullName: "", room: "" });
-                     rowCount = 1;
-                }
-                
-                dailySchedule.forEach((classInfo, index) => {
-                    const row = body.insertRow();
-                    row.setAttribute('data-day', day);
-                    
-                    if (index === 0) {
-                        const dayCell = row.insertCell();
-                        dayCell.textContent = day;
-                        dayCell.rowSpan = rowCount; 
-                        dayCell.className = 'day-header-cell'; // Added class for easy retrieval
-                        dayCell.style.fontWeight = 'bold';
-                        dayCell.style.backgroundColor = '#e9ecef';
-                    }
-                    
-                    // Time - Editable
-                    const timeCell = row.insertCell();
-                    timeCell.textContent = classInfo.time || '00:00 - 00:00';
-                    timeCell.setAttribute('data-key', 'time');
-                    timeCell.setAttribute('contenteditable', 'true'); 
-                    
-                    // Editable Cells
-                    ['topic', 'shortName', 'fullName', 'room'].forEach(key => {
-                        const cell = row.insertCell();
-                        cell.textContent = classInfo[key] || '';
-                        cell.setAttribute('contenteditable', 'true');
-                        cell.setAttribute('data-key', key);
-                    });
-
-                    // Action Cell (Remove Slot)
-                    const actionCell = row.insertCell();
-                    const removeButton = document.createElement('button');
-                    removeButton.textContent = '🗑️ Remove Slot';
-                    removeButton.style.backgroundColor = '#dc3545';
-                    removeButton.style.padding = '5px 10px';
-                    removeButton.style.fontSize = '12px';
-                    removeButton.style.marginLeft = '0';
-                    removeButton.onclick = (e) => removeClassSlotInEditor(e.target.closest('tr'));
-                    actionCell.appendChild(removeButton);
-                });
-
-                // Add an 'Add Class' button at the end of each day
-                const addRow = body.insertRow();
-                const addCell = addRow.insertCell();
-                addCell.colSpan = 7;
-                addCell.style.textAlign = 'center';
-                addCell.style.padding = '0';
-                const addButton = document.createElement('button');
-                addButton.textContent = `+ Add Class Slot to ${day}`;
-                addButton.style.backgroundColor = '#28a745';
-                addButton.style.width = '100%';
-                addButton.style.borderRadius = '0';
-                addButton.style.padding = '10px';
-                addButton.style.marginTop = '10px';
-                addButton.style.marginBottom = '10px';
-                addButton.onclick = () => addClassSlotInEditor(day, body);
-                addCell.appendChild(addButton);
-            });
-
-            document.getElementById('editorModal').style.display = 'block';
-        }
-
-        // Function to add a slot in the live editor table
-        function addClassSlotInEditor(day, tbody) {
-            const table = document.getElementById('editableRoutineTable');
-            
-            // Find the last row of the current day (which is the Add Slot button row)
-            let lastClassRow = null;
-            let addSlotButtonRow = null;
-            Array.from(table.querySelectorAll('tbody tr')).forEach(row => {
-                 if (row.getAttribute('data-day') === day) {
-                    // Check if it's the class data row (i.e., not the button row)
-                    if (!row.querySelector('button[textContent*="Add Class Slot"]')) {
-                        lastClassRow = row;
-                    } else {
-                        addSlotButtonRow = row;
-                    }
-                }
-            });
-            
-            let insertionIndex = -1;
-            if (addSlotButtonRow) {
-                // Insert before the Add Slot button row
-                insertionIndex = addSlotButtonRow.rowIndex - 1;
-            } else if (lastClassRow) {
-                // Should not happen if Add Slot button is present, but fallback to after last class row
-                insertionIndex = lastClassRow.rowIndex;
-            }
-
-            // Find the day header cell to update rowSpan
-            const dayHeaderCell = tbody.querySelector(`tr[data-day="${day}"] .day-header-cell`);
-            if (dayHeaderCell) {
-                dayHeaderCell.rowSpan = (dayHeaderCell.rowSpan || 1) + 1;
+            if (rowCount === 0) {
+                 dailySchedule.push({ time: "00:00 - 00:00", topic: "New Slot", shortName: "", fullName: "", room: "" });
+                 rowCount = 1;
             }
             
-            // Create the new class row
-            const newRow = tbody.insertRow(insertionIndex); 
-            newRow.setAttribute('data-day', day);
-
-            // Day cell will be absent for subsequent rows (handled by rowspan)
-
-            // Time - Editable
-            const timeCell = newRow.insertCell();
-            timeCell.textContent = "00:00 - 00:00"; 
-            timeCell.setAttribute('data-key', 'time');
-            timeCell.setAttribute('contenteditable', 'true');
-            
-            // Editable Cells
-            ['topic', 'shortName', 'fullName', 'room'].forEach(key => {
-                const cell = newRow.insertCell();
-                cell.textContent = key === 'topic' ? 'New Class' : '';
-                cell.setAttribute('contenteditable', 'true');
-                cell.setAttribute('data-key', key);
-            });
-
-            // Action Cell (Remove Slot)
-            const actionCell = newRow.insertCell();
-            const removeButton = document.createElement('button');
-            removeButton.textContent = '🗑️ Remove Slot';
-            removeButton.style.backgroundColor = '#dc3545';
-            removeButton.style.padding = '5px 10px';
-            removeButton.style.fontSize = '12px';
-            removeButton.style.marginLeft = '0';
-            removeButton.onclick = (e) => removeClassSlotInEditor(e.target.closest('tr'));
-            actionCell.appendChild(removeButton);
-
-            alert(`New slot added to ${day}. Please edit the details and click 'Save and Apply Changes'.`);
-        }
-        
-        // Function to remove a slot from the live editor table
-        function removeClassSlotInEditor(rowElement) {
-            if (!confirm("Are you sure you want to remove this class slot?")) return;
-
-            const day = rowElement.getAttribute('data-day');
-            
-            // 1. Find the day header cell to update rowSpan
-            const dayHeaderCell = rowElement.closest('tbody').querySelector(`tr[data-day="${day}"] .day-header-cell`);
-
-            if (dayHeaderCell) {
-                const currentRowsForDay = Array.from(rowElement.closest('tbody').querySelectorAll(`tr[data-day="${day}"]`)).filter(r => !r.querySelector('button[textContent*="Add Class Slot"]'));
-                const isFirstRow = rowElement.contains(dayHeaderCell);
-                
-                const newRowSpan = currentRowsForDay.length - 1;
-                
-                if (newRowSpan > 0) {
-                    dayHeaderCell.rowSpan = newRowSpan;
-                    
-                    // If the row being deleted contains the day header cell, move the day header cell to the next class row
-                    if (isFirstRow) {
-                        const allRows = Array.from(rowElement.closest('tbody').querySelectorAll(`tr[data-day="${day}"]`));
-                        const nextClassRow = allRows.find(r => r !== rowElement && !r.querySelector('button[textContent*="Add Class Slot"]'));
-                        
-                        if (nextClassRow) {
-                            const newDayCell = nextClassRow.insertCell(0); // Insert as the first cell
-                            newDayCell.textContent = day;
-                            newDayCell.rowSpan = newRowSpan;
-                            newDayCell.className = 'day-header-cell'; 
-                            newDayCell.style.fontWeight = 'bold';
-                            newDayCell.style.backgroundColor = '#e9ecef';
-                        }
-                    }
-                }
-            }
-            
-            // 2. Remove the row
-            rowElement.remove();
-            
-            alert(`Slot removed. Click 'Save and Apply Changes' to make the deletion permanent.`);
-        }
-        
-        function saveRoutine() {
-            const table = document.getElementById('editableRoutineTable');
-            // Select only rows that represent class data, ignoring the 'Add Slot' buttons
-            const rows = table.querySelectorAll('tbody tr[data-day]:not(:has(button[textContent*="Add Class Slot"]))');
-            const newRoutine = {}; 
-
-            rows.forEach(row => {
-                const day = row.getAttribute('data-day');
-                
-                if (!newRoutine[day]) {
-                    newRoutine[day] = [];
-                }
-
-                const classInfo = {};
-                // Select only cells with data-key (Time, Topic, Short Name, Full Name, Room)
-                row.querySelectorAll('td[data-key]').forEach(cell => {
-                    const key = cell.getAttribute('data-key');
-                    classInfo[key] = cell.textContent.trim();
-                });
-                
-                // Only add valid class slots (assuming Time or Topic exists)
-                if (classInfo.time || classInfo.topic) {
-                     newRoutine[day].push(classInfo);
-                }
-            });
-            
-            saveRoutineToLocalStorage(newRoutine);
-        }
-        
-        function resetRoutine() {
-            if (confirm("আপনি কি নিশ্চিত যে আপনি রুটিনটিকে ডিফল্ট অবস্থায় ফিরিয়ে নিতে চান? এই পরিবর্তনটি অপরিবর্তনীয়।")) {
-                saveRoutineToLocalStorage(defaultClassScheduleData);
-            }
-        }
-
-        // --- Core Logic (Using currentClassScheduleData) ---
-        function updateDayAndGenerate() {
-            const dateInput = document.getElementById('scheduleDate').value;
-            const dayElement = document.getElementById('currentDay');
-
-            if (dateInput) {
-                const dateObj = new Date(dateInput + 'T00:00:00'); 
-                const dayIndex = dateObj.getDay(); 
-                const dayName = dayNames[dayIndex];
-                
-                dayElement.value = dayName;
-                loadClassOptions(dayName); 
-                generateMessage();
-            } else {
-                dayElement.value = "Select a Date";
-                document.getElementById('classListContainer').innerHTML = '';
-                generateMessage();
-            }
-        }
-
-        function loadClassOptions(dayName) {
-            const container = document.getElementById('classListContainer');
-            container.innerHTML = '';
-            document.getElementById('optionalClasses').style.display = document.getElementById('scheduleType').value === 'partial' ? 'block' : 'none';
-
-            const dailySchedule = currentClassScheduleData[dayName] || []; 
-
-            if (dayName === "Friday" || dayName === "Saturday") return;
-
             dailySchedule.forEach((classInfo, index) => {
-                if (classInfo.topic && classInfo.topic.toLowerCase() !== 'no class') {
-                    const label = document.createElement('label');
-                    const checkbox = document.createElement('input');
-                    
-                    checkbox.type = 'checkbox';
-                    checkbox.value = index;
-                    checkbox.checked = false; 
-                    checkbox.name = 'classCanceled';
-                    checkbox.onchange = generateMessage;
-
-                    let displayInfo = classInfo.time;
-                    const teacher = classInfo.shortName || classInfo.fullName;
-                    if (classInfo.topic) {
-                         displayInfo += ` - ${classInfo.topic}`;
-                    }
-                    if (teacher) {
-                        displayInfo += ` (${classInfo.shortName})`;
-                    }
-
-                    label.appendChild(checkbox);
-                    label.appendChild(document.createTextNode(displayInfo));
-                    container.appendChild(label);
+                const row = body.insertRow();
+                row.setAttribute('data-day', day);
+                
+                if (index === 0) {
+                    const dayCell = row.insertCell();
+                    dayCell.textContent = day;
+                    dayCell.rowSpan = rowCount; 
+                    dayCell.className = 'day-header-cell';
+                    dayCell.style.fontWeight = 'bold';
+                    // Using style directly, but ensuring readability in dark mode is handled by classes if needed
+                    // but for simplicity we keep the structure. The CSS variables handle the rest.
+                    dayCell.style.verticalAlign = 'top';
                 }
-            });
-        }
+                
+                // Time - Editable
+                const timeCell = row.insertCell();
+                timeCell.textContent = classInfo.time || '00:00 - 00:00';
+                timeCell.setAttribute('data-key', 'time');
+                timeCell.setAttribute('contenteditable', 'true'); 
+                
+                // Class Topic (Dropdown/Input)
+                const topicCell = row.insertCell();
+                topicCell.innerHTML = createDropdownHTML('topics', classInfo.topic || '');
+                topicCell.setAttribute('data-key', 'topic');
+                
+                // Short Name (Dropdown/Input - Teachers)
+                const shortNameCell = row.insertCell();
+                shortNameCell.innerHTML = createDropdownHTML('teachers', classInfo.shortName || '');
+                shortNameCell.setAttribute('data-key', 'shortName');
+                
+                // Full Name (Read-only, derived on save) 
+                const fullNameCell = row.insertCell();
+                fullNameCell.textContent = classInfo.fullName || '';
+                fullNameCell.setAttribute('data-key', 'fullName');
+                
+                // Room (Dropdown/Input)
+                const roomCell = row.insertCell();
+                roomCell.innerHTML = createDropdownHTML('rooms', classInfo.room || '');
+                roomCell.setAttribute('data-key', 'room');
 
-        function toggleClassSelection() {
-            const scheduleType = document.getElementById('scheduleType').value;
-            const optionalClassesDiv = document.getElementById('optionalClasses');
-            
-            if (scheduleType === 'partial') {
-                optionalClassesDiv.style.display = 'block';
-                loadClassOptions(document.getElementById('currentDay').value); 
-            } else {
-                optionalClassesDiv.style.display = 'none';
+                // Action Cell (Remove Slot)
+                const actionCell = row.insertCell();
+                const removeButton = document.createElement('button');
+                removeButton.textContent = '🗑️ Remove Slot';
+                removeButton.style.backgroundColor = '#dc3545';
+                removeButton.style.color = 'white';
+                removeButton.style.border = 'none';
+                removeButton.style.padding = '5px 10px';
+                removeButton.style.fontSize = '12px';
+                removeButton.style.borderRadius = '4px';
+                removeButton.style.marginLeft = '0';
+                removeButton.onclick = (e) => removeClassSlotInEditor(e.target.closest('tr'));
+                actionCell.appendChild(removeButton);
+            });
+
+            // Add an 'Add Class' button at the end of each day
+            const addRow = body.insertRow();
+            const addCell = addRow.insertCell();
+            addCell.colSpan = 7;
+            addCell.style.textAlign = 'center';
+            addCell.style.padding = '0';
+            const addButton = document.createElement('button');
+            addButton.textContent = `+ Add Class Slot to ${day}`;
+            addButton.style.backgroundColor = '#28a745';
+            addButton.style.color = 'white';
+            addButton.style.border = 'none';
+            addButton.style.width = '100%';
+            addButton.style.borderRadius = '0';
+            addButton.style.padding = '10px';
+            addButton.style.marginTop = '10px';
+            addButton.style.marginBottom = '10px';
+            addButton.onclick = () => addClassSlotInEditor(day, body);
+            addCell.appendChild(addButton);
+        });
+
+        document.getElementById('editorModal').style.display = 'block';
+    }
+
+    // Function to add a slot in the live editor table
+    function addClassSlotInEditor(day, tbody) {
+        const table = document.getElementById('editableRoutineTable');
+        let addSlotButtonRow = null;
+        let lastRowIndex = -1;
+
+        Array.from(table.querySelectorAll('tbody tr')).forEach(row => {
+             if (row.getAttribute('data-day') === day) {
+                // Find the row containing the "Add Class Slot" button
+                if (row.querySelector('button') && row.querySelector('button').textContent.includes("Add Class Slot")) {
+                    addSlotButtonRow = row;
+                    lastRowIndex = row.rowIndex;
+                } 
             }
+        });
+        
+        // Insert right before the "Add Class Slot" button row, or at the end of the tbody
+        const insertionIndex = (addSlotButtonRow && lastRowIndex > -1) ? addSlotButtonRow.rowIndex - table.tHead.rows.length : tbody.rows.length;
+
+        const dayHeaderCell = tbody.querySelector(`tr[data-day="${day}"] .day-header-cell`);
+        if (dayHeaderCell) {
+            dayHeaderCell.rowSpan = (dayHeaderCell.rowSpan || 1) + 1;
+        }
+        
+        const newRow = tbody.insertRow(insertionIndex); 
+        newRow.setAttribute('data-day', day);
+
+        const timeCell = newRow.insertCell();
+        timeCell.textContent = "00:00 - 00:00"; 
+        timeCell.setAttribute('data-key', 'time');
+        timeCell.setAttribute('contenteditable', 'true');
+        
+        const topicCell = newRow.insertCell();
+        topicCell.innerHTML = createDropdownHTML('topics', 'New Class');
+        topicCell.setAttribute('data-key', 'topic');
+        
+        const shortNameCell = newRow.insertCell();
+        shortNameCell.innerHTML = createDropdownHTML('teachers', '');
+        shortNameCell.setAttribute('data-key', 'shortName');
+        
+        const fullNameCell = newRow.insertCell();
+        fullNameCell.textContent = '';
+        fullNameCell.setAttribute('data-key', 'fullName');
+        
+        const roomCell = newRow.insertCell();
+        roomCell.innerHTML = createDropdownHTML('rooms', '');
+        roomCell.setAttribute('data-key', 'room');
+
+        const actionCell = newRow.insertCell();
+        const removeButton = document.createElement('button');
+        removeButton.textContent = '🗑️ Remove Slot';
+        removeButton.style.backgroundColor = '#dc3545';
+        removeButton.style.color = 'white';
+        removeButton.style.border = 'none';
+        removeButton.style.padding = '5px 10px';
+        removeButton.style.fontSize = '12px';
+        removeButton.style.borderRadius = '4px';
+        removeButton.style.marginLeft = '0';
+        removeButton.onclick = (e) => removeClassSlotInEditor(e.target.closest('tr'));
+        actionCell.appendChild(removeButton);
+
+        alert(`New slot added to ${day}. Please edit the details and click 'Save and Apply Changes'.`);
+    }
+    
+    // Function to remove a slot from the live editor table
+    function removeClassSlotInEditor(rowElement) {
+        if (!confirm("Are you sure you want to remove this class slot?")) return;
+
+        const day = rowElement.getAttribute('data-day');
+        
+        const dayHeaderCell = rowElement.closest('tbody').querySelector(`tr[data-day="${day}"] .day-header-cell`);
+
+        if (dayHeaderCell) {
+            // Filter out the 'Add Class Slot' button row to count actual class rows
+            const currentRowsForDay = Array.from(rowElement.closest('tbody').querySelectorAll(`tr[data-day="${day}"]`)).filter(r => {
+                 const button = r.querySelector('button');
+                 return !(button && button.textContent.includes("Add Class Slot"));
+            });
+            const isFirstRow = rowElement.contains(dayHeaderCell);
+            
+            const newRowSpan = currentRowsForDay.length - 1;
+            
+            if (newRowSpan > 0) {
+                dayHeaderCell.rowSpan = newRowSpan;
+                
+                if (isFirstRow) {
+                    const allRows = Array.from(rowElement.closest('tbody').querySelectorAll(`tr[data-day="${day}"]`));
+                    const nextClassRow = allRows.find(r => r !== rowElement && r.rowIndex > rowElement.rowIndex && !r.querySelector('button').textContent.includes("Add Class Slot"));
+                    
+                    if (nextClassRow) {
+                        const newDayCell = nextClassRow.insertCell(0);
+                        newDayCell.textContent = day;
+                        newDayCell.rowSpan = newRowSpan;
+                        newDayCell.className = 'day-header-cell'; 
+                        newDayCell.style.fontWeight = 'bold';
+                        // CSS vars handle bg color
+                        newDayCell.style.verticalAlign = 'top';
+                    }
+                }
+            } else if (newRowSpan === 0) {
+                 if (dayHeaderCell) dayHeaderCell.remove();
+            }
+        }
+        
+        rowElement.remove();
+        
+        alert(`Slot removed. Click 'Save and Apply Changes' to make the deletion permanent.`);
+    }
+    
+    function saveRoutine() {
+        const table = document.getElementById('editableRoutineTable');
+        // Filter out the 'Add Class Slot' button row
+        const rows = table.querySelectorAll('tbody tr[data-day]:not(:has(button[textContent*="Add Class Slot"]))');
+        const newRoutine = {}; 
+
+        rows.forEach(row => {
+            const day = row.getAttribute('data-day');
+            
+            if (!newRoutine[day]) {
+                newRoutine[day] = [];
+            }
+
+            const classInfo = {};
+            
+            // Time is directly from the editable cell
+            const timeCell = row.querySelector('td[data-key="time"]');
+            classInfo.time = timeCell ? timeCell.textContent.trim() : '';
+
+            // Get Topic, ShortName, Room (from the INPUT element inside the cell)
+            ['topic', 'shortName', 'room'].forEach(key => {
+                const cell = row.querySelector(`td[data-key="${key}"]`);
+                const inputElement = cell ? cell.querySelector('input.manual-input') : null;
+                classInfo[key] = inputElement ? inputElement.value.trim() : '';
+            });
+
+            // Find Full Name based on Short Name
+            // Check if shortName is a combined string (e.g., MYM + SI + YA)
+            if (classInfo.shortName.includes('+')) {
+                const shortNames = classInfo.shortName.split('+').map(s => s.trim());
+                const fullNames = shortNames.map(short => {
+                    const teacher = APP_DATA.teachers.find(t => t.short === short);
+                    return teacher ? teacher.full : short;
+                }).join(', ');
+                classInfo.fullName = fullNames;
+            } else {
+                 const teacher = APP_DATA.teachers.find(t => t.short === classInfo.shortName);
+                 classInfo.fullName = teacher ? teacher.full : '';
+            }
+            
+            // Only add valid class slots
+            if (classInfo.time || classInfo.topic) {
+                 newRoutine[day].push(classInfo);
+            }
+        });
+        
+        saveRoutineToLocalStorage(newRoutine);
+    }
+    
+    function resetRoutine() {
+        if (confirm("Are you sure you want to reset the routine to the default state? This change is irreversible.")) {
+            saveRoutineToLocalStorage(defaultClassScheduleData);
+        }
+    }
+
+    // --- Core Logic (Using currentClassScheduleData) ---
+    function updateDayAndGenerate() {
+        const dateInput = document.getElementById('scheduleDate').value;
+        const dayElement = document.getElementById('currentDay');
+
+        if (dateInput) {
+            const dateObj = new Date(dateInput + 'T00:00:00'); 
+            const dayIndex = dateObj.getDay(); 
+            const dayName = dayNames[dayIndex];
+            
+            dayElement.value = dayName;
+            loadClassOptions(dayName); 
+            generateMessage();
+        } else {
+            dayElement.value = "Select a Date";
+            document.getElementById('classListContainer').innerHTML = '';
             generateMessage();
         }
+    }
 
-        function generateMessage() {
-            const dayName = document.getElementById('currentDay').value;
-            const dateInput = document.getElementById('scheduleDate').value;
-            const scheduleType = document.getElementById('scheduleType').value;
-            const specialNote = document.getElementById('specialNote').value.trim();
-            const dailySchedule = currentClassScheduleData[dayName] || []; 
+    function loadClassOptions(dayName) {
+        const container = document.getElementById('classListContainer');
+        container.innerHTML = '';
+        document.getElementById('optionalClasses').style.display = document.getElementById('scheduleType').value === 'partial' ? 'block' : 'none';
 
-            // 1. Format Date
-            let formattedDate = 'Day/Date';
-            if (dateInput) { 
-                const dateObj = new Date(dateInput + 'T00:00:00');
-                const options = { weekday: 'long', day: '2-digit', month: 'short' };
-                formattedDate = dateObj.toLocaleDateString('en-US', options).replace(',', ''); 
+        const dailySchedule = currentClassScheduleData[dayName] || []; 
+
+        if (dayName === "Friday" || dayName === "Saturday") return;
+
+        dailySchedule.forEach((classInfo, index) => {
+            if (classInfo.topic && classInfo.topic.toLowerCase() !== 'no class' && !classInfo.topic.toLowerCase().includes('holiday')) {
+                const label = document.createElement('label');
+                const checkbox = document.createElement('input');
+                
+                checkbox.type = 'checkbox';
+                checkbox.value = index;
+                checkbox.checked = false; 
+                checkbox.name = 'classCanceled';
+                checkbox.onchange = generateMessage;
+
+                let displayInfo = classInfo.time;
+                const teacher = classInfo.shortName || classInfo.fullName;
+                if (classInfo.topic) {
+                     displayInfo += ` - ${classInfo.topic}`;
+                }
+                if (teacher) {
+                    displayInfo += ` (${classInfo.shortName})`;
+                }
+
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(displayInfo));
+                container.appendChild(label);
             }
+        });
+    }
+
+    function toggleClassSelection() {
+        const scheduleType = document.getElementById('scheduleType').value;
+        const optionalClassesDiv = document.getElementById('optionalClasses');
+        
+        if (scheduleType === 'partial') {
+            optionalClassesDiv.style.display = 'block';
+            loadClassOptions(document.getElementById('currentDay').value); 
+        } else {
+            optionalClassesDiv.style.display = 'none';
+        }
+        generateMessage();
+    }
+
+    // Removed "Generate Message" button, so this function is called on input/change events
+    function generateMessage() {
+        const dayName = document.getElementById('currentDay').value;
+        const dateInput = document.getElementById('scheduleDate').value;
+        const scheduleType = document.getElementById('scheduleType').value;
+        const specialNote = document.getElementById('specialNote').value.trim();
+        const dailySchedule = currentClassScheduleData[dayName] || []; 
+
+        // 1. Format Date (FIXED: Uses Ordinal Suffix and full date format)
+        let formattedDate = 'Day/Date';
+        if (dateInput) { 
+            const dateObj = new Date(dateInput + 'T00:00:00'); 
             
-            let message = `Class Schedule for Tomorrow (${formattedDate}) :\n\n`;
-            let finalSchedule = [];
+            // Get parts to reassemble with ordinal
+            const dayOfMonth = dateObj.getDate();
+            const dayOfWeek = dateObj.toLocaleDateString('en-US', { weekday: 'long' });
+            const monthName = dateObj.toLocaleDateString('en-US', { month: 'long' });
+            const year = dateObj.getFullYear();
+            
+            // Format: (Day, Date_Ordinal Month_Full, Year)
+            formattedDate = `${dayOfWeek}, ${dayOfMonth}${getOrdinalSuffix(dayOfMonth)} ${monthName}, ${year}`;
+        }
+        
+        let message = `Class Schedule for Tomorrow (${formattedDate}) :\n\n`;
+        let finalSchedule = [];
 
-            // 2. Class Filtering based on Time Limit
-            let timeLimit = null;
-            const timeMatch = specialNote.match(/till\s*(\d{1,2}:\d{2})\s*(?:AM|PM)?/i);
-            if (timeMatch) { 
-                const timeString = timeMatch[1].toLowerCase();
-                let [hours, minutes] = timeString.split(':').map(Number);
-                if (specialNote.toLowerCase().includes('pm') && hours !== 12) { hours += 12; } 
-                else if (specialNote.toLowerCase().includes('am') && hours === 12) { hours = 0; }
-                timeLimit = hours * 100 + minutes;
-            }
+        // 2. Class Filtering based on Time Limit
+        let timeLimit = null;
+        // Updated regex to handle optional AM/PM more cleanly
+        const timeMatch = specialNote.match(/till\s*(\d{1,2}:\d{2})\s*(AM|PM)?/i); 
+        if (timeMatch) { 
+            const timeString = timeMatch[1];
+            const ampm = timeMatch[2] ? timeMatch[2].toUpperCase() : '';
+            let [hours, minutes] = timeString.split(':').map(Number);
+            
+            // Basic AM/PM conversion logic
+            if (ampm === 'PM' && hours !== 12) { hours += 12; } 
+            else if (ampm === 'AM' && hours === 12) { hours = 0; }
+            timeLimit = hours * 100 + minutes;
+        }
 
-            if (dayName === "Friday" || dayName === "Saturday") {
-                finalSchedule.push(dailySchedule.find(c => c.topic.toLowerCase().includes('holiday')) || dailySchedule[0]);
+        if (dayName === "Friday" || dayName === "Saturday") {
+             // Handle weekly holiday case
+            const holidayClass = dailySchedule.find(c => c.topic.toLowerCase().includes('holiday')) || dailySchedule[0];
+            if (holidayClass) {
+                 finalSchedule.push(holidayClass);
+            } else if (dailySchedule.length > 0) {
+                 // Fallback to first if no specific holiday note
+                 finalSchedule.push(dailySchedule[0]);
             } else {
-                const canceledIndices = new Set();
-                if (scheduleType === 'partial') {
-                    document.querySelectorAll('input[name="classCanceled"]:checked').forEach(checkbox => {
-                        canceledIndices.add(parseInt(checkbox.value));
-                    });
-                }
-                
-                dailySchedule.forEach((classInfo, index) => {
-                    if (!classInfo || !classInfo.time) return; 
-
-                    // Time limit check
-                    const endTimeStr = classInfo.time.split('-')[1] ? classInfo.time.split('-')[1].trim() : "00:00"; 
-                    const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
-                    const endTimeNumeric = endHours * 100 + endMinutes;
-
-                    if (timeLimit && endTimeNumeric > timeLimit) { return; }
-
-                    if (classInfo.topic && classInfo.topic.toLowerCase().includes('no class')) {
-                        finalSchedule.push(classInfo); 
-                    } else if (classInfo.topic && canceledIndices.has(index)) {
-                        finalSchedule.push({ time: classInfo.time, topic: "No class (Canceled)", shortName: "", fullName: "", room: "" });
-                    } else if (classInfo.topic) {
-                        finalSchedule.push(classInfo);
-                    }
+                 // Final fallback for empty schedule
+                 message = `Class Schedule for Tomorrow (${formattedDate}) :\n\n09:00 - 01:30 ➤ No Class (Weekly Holiday)\n`;
+            }
+            
+        } else {
+            const canceledIndices = new Set();
+            if (scheduleType === 'partial') {
+                document.querySelectorAll('input[name="classCanceled"]:checked').forEach(checkbox => {
+                    canceledIndices.add(parseInt(checkbox.value));
                 });
             }
+            
+            dailySchedule.forEach((classInfo, index) => {
+                if (!classInfo || !classInfo.time) return; 
 
-            // 3. Generate Message Body
-            finalSchedule.forEach(classInfo => {
-                 if (!classInfo || !classInfo.time) return; 
-                const teacherInfo = (classInfo.shortName ? `${classInfo.shortName} (${classInfo.fullName})` : classInfo.fullName ? `(${classInfo.fullName})` : '').trim();
-                const roomInfo = classInfo.room && classInfo.room !== "N/A" ? `>>> Room ${classInfo.room}` : "";
-                
-                if (classInfo.topic && classInfo.topic.toLowerCase().includes("no class")) {
-                    message += `${classInfo.time} ➤ ${classInfo.topic}\n`;
+                // Time limit check
+                const endTimeStr = classInfo.time.split('-')[1] ? classInfo.time.split('-')[1].trim() : "00:00"; 
+                const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
+                const endTimeNumeric = endHours * 100 + endMinutes;
+
+                if (timeLimit && endTimeNumeric > timeLimit) { return; }
+
+                if (classInfo.topic && classInfo.topic.toLowerCase().includes('no class')) {
+                    finalSchedule.push(classInfo); 
+                } else if (classInfo.topic && canceledIndices.has(index)) {
+                    // Canceled class now becomes "No class"
+                    finalSchedule.push({ time: classInfo.time, topic: "No class", shortName: "", fullName: "", room: "" });
                 } else if (classInfo.topic) {
-                    message += `${classInfo.time} ➤ ${teacherInfo} >>> ${classInfo.topic} ${roomInfo}\n`;
+                    finalSchedule.push(classInfo);
                 }
             });
-
-
-            // 4. Add Special Note (Always active)
-            if (specialNote) {
-                message += `\n*** Special Note ***\n`;
-                message += specialNote;
-            }
-
-            document.getElementById('messagePreview').value = message;
         }
 
-        // --- Reference Table Creation Logic (Reflects LocalStorage changes) ---
-        function createReferenceTable() {
-            const tableBody = document.querySelector('#referenceTable tbody');
-            tableBody.innerHTML = '';
+        // 3. Generate Message Body
+        finalSchedule.forEach(classInfo => {
+             if (!classInfo || !classInfo.time) return; 
+            const teacherInfo = (classInfo.shortName ? `${classInfo.shortName} (${classInfo.fullName})` : classInfo.fullName ? `(${classInfo.fullName})` : '').trim();
+            const roomInfo = classInfo.room && classInfo.room !== "N/A" && classInfo.room !== "" ? `>>> Room ${classInfo.room}` : "";
             
-            const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            if (classInfo.topic && classInfo.topic.toLowerCase().includes("no class")) {
+                message += `${classInfo.time} ➤ ${classInfo.topic}\n`;
+            } else if (classInfo.topic) {
+                // Determine if we need to show teacher info
+                const classText = teacherInfo ? `${teacherInfo} >>> ${classInfo.topic}` : classInfo.topic;
+                message += `${classInfo.time} ➤ ${classText} ${roomInfo}\n`;
+            }
+        });
 
-            days.forEach(day => {
-                const dailySchedule = currentClassScheduleData[day] || []; 
-                const displaySchedule = dailySchedule.filter(item => item.time || item.topic);
-                
-                const rowCount = displaySchedule.length;
-                
-                if (rowCount === 0) return; 
 
-                displaySchedule.forEach((classInfo, index) => {
-                    const row = tableBody.insertRow();
-                    
-                    if (index === 0) {
-                        const dayCell = row.insertCell();
-                        dayCell.textContent = day;
-                        dayCell.rowSpan = rowCount;
-                    }
-                    
-                    row.insertCell().textContent = classInfo.time;
-                    row.insertCell().textContent = classInfo.topic;
-                    row.insertCell().textContent = classInfo.shortName;
-                    row.insertCell().textContent = classInfo.fullName;
-                    row.insertCell().textContent = classInfo.room;
-                });
-            });
+        // 4. Add Special Note (Always active)
+        if (specialNote) {
+            message += `\n*** Special Note ***\n`;
+            message += specialNote;
         }
+
+        document.getElementById('messagePreview').value = message;
+    }
+
+    // --- Reference Table Creation Logic (Reflects LocalStorage changes) ---
+    function createReferenceTable() {
+        const tableBody = document.querySelector('#referenceTable tbody');
+        tableBody.innerHTML = '';
         
-        function copyMessage() { 
-            const messageTextarea = document.getElementById('messagePreview');
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+        days.forEach(day => {
+            const dailySchedule = currentClassScheduleData[day] || []; 
+            const displaySchedule = dailySchedule.filter(item => item.time || item.topic);
+            
+            const rowCount = displaySchedule.length;
+            
+            if (rowCount === 0) return; 
+
+            displaySchedule.forEach((classInfo, index) => {
+                const row = tableBody.insertRow();
+                
+                if (index === 0) {
+                    const dayCell = row.insertCell();
+                    dayCell.textContent = day;
+                    dayCell.rowSpan = rowCount;
+                }
+                
+                row.insertCell().textContent = classInfo.time;
+                row.insertCell().textContent = classInfo.topic;
+                row.insertCell().textContent = classInfo.shortName;
+                row.insertCell().textContent = classInfo.fullName;
+                row.insertCell().textContent = classInfo.room;
+            });
+        });
+    }
+    
+    // --- Copy Message Fix (Fix 4) ---
+    function copyMessage() { 
+        const messageTextarea = document.getElementById('messagePreview');
+        const textToCopy = messageTextarea.value || messageTextarea.textContent;
+        
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    alert('Message copied successfully!'); 
+                })
+                .catch(err => {
+                    // Fallback attempt
+                    messageTextarea.select(); 
+                    document.execCommand('copy');
+                    alert('Message copied! (Fallback)');
+                });
+        } else {
+            // Older browser fallback
             messageTextarea.select(); 
-            messageTextarea.setSelectionRange(0, 99999); 
-            try { navigator.clipboard.writeText(messageTextarea.value); alert('Message copied successfully!'); } 
-            catch (err) { document.execCommand('copy'); alert('Message copied! (Fallback)'); }
+            document.execCommand('copy');
+            alert('Message copied! (Fallback)');
         }
+    }
 
-        // --- Initialization ---
-        function initApp() {
-             // 1. Load data first (from LocalStorage or default)
-            loadRoutineFromLocalStorage(); 
+    // --- Initialization ---
+    function initApp() {
+         // 1. Load routine data first (from LocalStorage or default)
+        loadRoutineFromLocalStorage(); 
 
-            // 2. Set default date (tomorrow)
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const yyyy = tomorrow.getFullYear();
-            const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
-            const dd = String(tomorrow.getDate()).padStart(2, '0');
-            document.getElementById('scheduleDate').value = `${yyyy}-${mm}-${dd}`;
-            
-            // 3. Render all components based on current data
-            createReferenceTable(); 
-            updateDayAndGenerate(); 
-        }
-
-        // --- Event Listeners for Editor Modal ---
-        window.onclick = function(event) {
-            const modal = document.getElementById('editorModal');
-            if (event.target == modal) {
-                closeEditor();
-            }
-        }
+        // 2. Set default date (tomorrow)
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        document.getElementById('scheduleDate').value = `${yyyy}-${mm}-${dd}`;
         
-        window.onload = initApp;
-        
-        // Register Service Worker for PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js').then(registration => {
-                    console.log('SW registered: ', registration);
-                }).catch(registrationError => {
-                    console.log('SW registration failed: ', registrationError);
-                });
+        // 3. Render all components based on current data
+        createReferenceTable(); 
+        updateDayAndGenerate(); 
+    }
+
+    // --- Event Listeners for Modal Closing ---
+    window.onclick = function(event) {
+        const modal = document.getElementById('editorModal');
+        const managerModal = document.getElementById('dataManagerModal');
+        if (event.target == modal) {
+            closeEditor();
+        }
+        if (event.target == managerModal) {
+             closeManager();
+        }
+    }
+    
+    window.onload = initApp;
+    
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js').then(registration => {
+                console.log('SW registered: ', registration);
+            }).catch(registrationError => {
+                console.log('SW registration failed: ', registrationError);
             });
-        }
-    </script>
-    ...
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function() {
-      // service-worker.js ফাইলটি নিবন্ধিত হচ্ছে
-      navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
-        console.log('ServiceWorker registration successful');
-      }, function(err) {
-        console.log('ServiceWorker registration failed: ', err);
-      });
-    });
-  }
+        });
+    }
 </script>
 </body>
 </html>
